@@ -1,0 +1,35 @@
+{
+    "name": "weyes/accessibility-plus",
+    "description": "AccessibilityPlus",
+    "type": "wordpress-plugin",
+    "autoload": {
+        "psr-4": {
+            "WebYes\\AccessibilityPlus\\Lite\\": "lite/"
+        }
+    },
+    "require": {
+		"php": ">=8.0.0"
+	},
+    "require-dev": {
+		"wp-coding-standards/wpcs": "dev-develop",
+		"squizlabs/php_codesniffer": "3.*",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7"
+	},
+    "scripts": {
+		"lint": "vendor/squizlabs/php_codesniffer/bin/phpcs ./ -s --report=full,summary,source",
+		"lint-fix": "vendor/bin/phpcbf --standard=phpcs.xml.dist ./",
+		"test": "vendor/bin/phpunit"
+	},
+    "authors": [
+        {
+            "name": "WeYes",
+            "email": "info@webyes.com"
+        }
+    ],
+    "require": {},
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

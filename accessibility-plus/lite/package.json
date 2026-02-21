@@ -1,0 +1,14 @@
+{
+    "name": "accessibility-plus",
+    "version": "1.0.0",
+    "private": true,
+    "license": "UNLICENSED",
+    "workspaces": [
+        "lite/admin/app/"
+      ],
+    "scripts": {
+      "build": "cd lite/admin/app && npm run build"
+    },
+    "dependencies": {
+    }
+  }

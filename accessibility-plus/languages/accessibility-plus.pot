@@ -1,0 +1,181 @@
+# Copyright (C) 2025 WebYes
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: AccessibilityPlus: Boost Accessibility & SEO Score for Lighthouse 2.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/accessibility-plus\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-08-04T09:49:28+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.11.0\n"
+"X-Domain: accessibility-plus\n"
+
+#. Plugin Name of the plugin
+#: accessibility.php
+msgid "AccessibilityPlus: Boost Accessibility & SEO Score for Lighthouse"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: accessibility.php
+msgid "https://www.webyes.com/accessibility-plus/"
+msgstr ""
+
+#. Description of the plugin
+#: accessibility.php
+msgid "A simple way to make your website more accessible."
+msgstr ""
+
+#. Author of the plugin
+#: accessibility.php
+msgid "WeYes"
+msgstr ""
+
+#. Author URI of the plugin
+#: accessibility.php
+msgid "https://www.webyes.com/"
+msgstr ""
+
+#: lite/admin/class-admin.php:170
+#: lite/admin/class-admin.php:171
+msgid "AccessibilityPlus"
+msgstr ""
+
+#: lite/admin/class-admin.php:230
+msgid "Support"
+msgstr ""
+
+#: lite/admin/class-admin.php:231
+msgid "Settings"
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:162
+msgid "Current page of the collection."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:170
+msgid "Maximum number of items to be returned in result set."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:179
+msgid "Limit results to those matching a string."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:186
+msgid "Force fetch data"
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:203
+msgid "Configuration for various accessibility fixes."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:209
+msgid "Whether to add langDir."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:218
+msgid "Remove tabindex attributes."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:225
+msgid "Remove title when accessible name exists."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:232
+msgid "Force underline on links."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:239
+msgid "Ensure viewport scale is set properly."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:246
+msgid "Remove target=\"_blank\" for security."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:253
+msgid "Add target=\"_blank\" label."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:260
+msgid "Enable skip link for accessibility."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:268
+msgid "Add missing labels to comment form."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:275
+msgid "Add missing labels to search form."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:282
+msgid "Add focus outline to interactive elements."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:289
+msgid "Add accessible names to interactive elements."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:296
+msgid "Add missing alt text to images."
+msgstr ""
+
+#: lite/admin/modules/settings/api/class-api.php:303
+msgid "Add missing titles to iframes."
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:49
+msgid "Comment"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:54
+msgid "Name"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:59
+msgid "Email"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:64
+msgid "Website"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:87
+msgid "Search …"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:92
+msgid "Search for:"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-comment-search.php:94
+msgid "Search"
+msgstr ""
+
+#: lite/frontend/modules/fixes/fix/class-skip-link.php:52
+msgid "Skip to content12222"
+msgstr ""
+
+#: lite/includes/class-rest-controller.php:51
+msgid "Sorry, you cannot list resources."
+msgstr ""
+
+#: lite/frontend/class-frontend.php:265
+msgid "Accessibility toolbar"
+msgstr ""
+
+#: lite/frontend/class-frontend.php:266
+msgid "Adjust Font Sizing"
+msgstr ""
+
+#: lite/frontend/class-frontend.php:267
+msgid "High contrast"
+msgstr ""
+
+#: lite/frontend/class-frontend.php:268
+msgid "Grayscale"
+msgstr ""

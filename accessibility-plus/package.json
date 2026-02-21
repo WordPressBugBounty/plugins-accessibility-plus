@@ -1,0 +1,9 @@
+{
+    "name": "accessibility-plus",
+    "version": "1.0.0",
+    "license": "UNLICENSED",
+    "scripts": {
+        "build": "cd lite/admin/app && npm install && npm run build",
+        "build:production": "cd lite/admin/app && npm install && npm run build:production"
+    }
+}
