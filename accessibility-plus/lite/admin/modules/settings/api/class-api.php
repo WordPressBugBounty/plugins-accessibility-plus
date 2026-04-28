@@ -422,7 +422,7 @@ class Api extends Rest_Controller {
 	/**
 	 * Get default state for a banner type.
 	 *
-	 * @param string $slug Banner slug (e.g., 'review', 'walkthrough', 'black-friday').
+	 * @param string $slug Banner slug (e.g., 'review', 'walkthrough', 'black-friday', 'consultation').
 	 * @return array Default state for the banner.
 	 */
 	private function get_banner_default_state( $slug ) {
@@ -439,6 +439,10 @@ class Api extends Rest_Controller {
 				'dismissedAt'  => null,
 			),
 			'black-friday' => array(
+				'dismissed'    => false,
+				'dismissedAt'  => null,
+			),
+			'consultation' => array(
 				'dismissed'    => false,
 				'dismissedAt'  => null,
 			),

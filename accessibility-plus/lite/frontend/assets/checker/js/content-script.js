@@ -10,7 +10,10 @@ let dashboardContainer = null;
 let iframeElement = null;
 let isDashboardOpen = false;
 let selectedDevice = 'desktop';
-let currentAuditResult = null;
+/** Per-device cache: { desktop: { reportData: [], raw }, mobile: { reportData: [], raw } } or null for unaudited */
+let currentAuditResultByDevice = { desktop: null, mobile: null };
+/** Device we are currently auditing for; used to ignore completion if user switched device */
+let currentAuditTargetDevice = null;
 let currentIframeUrl = null;
 let isReauditing = false;
 
@@ -111,19 +114,61 @@ function updateIframeDimensions(device = selectedDevice) {
 
 /**
  * Handle device change from dashboard
- * Updates selected device and adjusts iframe dimensions accordingly
+ * Updates selected device and iframe. If new device has no cached result, runs audit for it (cancels in-flight audit for previous device).
  */
 function handleDeviceChange(device) {
+  currentAuditTargetDevice = device;
   selectedDevice = device;
-  
+
   if (isDashboardOpen) {
     updateIframeDimensions(device);
-    
-    // Clear highlights when device changes
+
     if (window.webyesHighlightUtils) {
       window.webyesHighlightUtils.cleanup();
     }
+
+    if (window.useAuditStore) {
+      let store = window.useAuditStore.getState();
+      if (hasCachedResultForDevice(device)) {
+        store.setAuditResult(buildMergedAuditResult());
+        store.setAuditError(null);
+      } else {
+        runSingleDeviceAuditAndUpdateStore(device);
+      }
+    }
   }
+}
+
+/**
+ * Build the full auditResult shape from per-device cache for the store (unchanged contract for dashboard).
+ */
+function buildMergedAuditResult() {
+  let desktop = currentAuditResultByDevice.desktop;
+  let mobile = currentAuditResultByDevice.mobile;
+  return {
+    body: {
+      data: {
+        report_data: {
+          desktop: (desktop && desktop.reportData) ? desktop.reportData : [],
+          mobile: (mobile && mobile.reportData) ? mobile.reportData : [],
+          best_practices: {
+            desktop: (desktop && desktop.bestPracticesData) ? desktop.bestPracticesData : [],
+            mobile: (mobile && mobile.bestPracticesData) ? mobile.bestPracticesData : []
+          }
+        }
+      }
+    },
+    desktop: desktop ? desktop.raw : null,
+    mobile: mobile ? mobile.raw : null
+  };
+}
+
+/**
+ * Check if we have cached result for a device
+ */
+function hasCachedResultForDevice(device) {
+  let cached = currentAuditResultByDevice[device];
+  return cached && cached.reportData && Array.isArray(cached.reportData);
 }
 
 /**
@@ -339,9 +384,9 @@ async function waitForIframeReady(maxWaitMs = 10000) {
   if (!iframeElement) {
     return false;
   }
-  
+
   const startTime = Date.now();
-  
+
   while (true) {
     try {
       const iframeDoc = iframeElement.contentDocument;
@@ -351,50 +396,84 @@ async function waitForIframeReady(maxWaitMs = 10000) {
     } catch (error) {
       // Ignore access errors
     }
-    
+
     if (Date.now() - startTime > maxWaitMs) {
       return false;
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
   }
 }
 
 /**
- * Run initial audit
+ * Wait for visible iframe body to have content (so we can audit via visible iframe only).
+ * Rejects after maxWaitMs with a clear error; no hidden iframe fallback.
  */
-async function runInitialAudit() {
-  try {
-    await waitForAuditStore();
-    await waitForIframeReady();
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (window.webyesAuditUtils) {
-      const results = await window.webyesAuditUtils.runMultiDeviceAuditFormattedIsolated();
-      
-      if (window.useAuditStore) {
-        const store = window.useAuditStore.getState();
-        store.setAuditResult(results);
-        store.setAuditError(null); // Clear any previous errors
-      }
+function waitForVisibleIframeBodyContent(maxWaitMs) {
+  maxWaitMs = maxWaitMs || 25000;
+  let pollMs = 200;
+  let start = Date.now();
+  return new Promise(function (resolve, reject) {
+    function check() {
+      try {
+        if (!iframeElement || !iframeElement.contentDocument) {
+          return false;
+        }
+        let doc = iframeElement.contentDocument;
+        if (doc.readyState !== 'complete' && doc.readyState !== 'interactive') {
+          return false;
+        }
+        if (doc.body && doc.body.children && doc.body.children.length > 0) {
+          return true;
+        }
+      } catch (e) {}
+      return false;
     }
-  } catch (error) {
-    console.error('[WebYes Checker] Initial audit failed:', error);
-    
-    // Set error state in store
-    if (window.useAuditStore) {
-      const store = window.useAuditStore.getState();
-      const errorMessage = error?.message || String(error);
-      
-      // Check if it's a timeout error
-      if (errorMessage.includes('timeout') || errorMessage.includes('Timeout')) {
-        store.setAuditError('timeout');
-      } else {
-        store.setAuditError(errorMessage);
+    function tick() {
+      if (check()) {
+        resolve();
+        return;
       }
-      store.setAuditResult(null);
+      if (Date.now() - start >= maxWaitMs) {
+        reject(new Error('Page content didn\'t load in time'));
+        return;
+      }
+      setTimeout(tick, pollMs);
     }
+    tick();
+  });
+}
+
+/**
+ * Run initial audit for the currently selected device only (used when opening dashboard with no cache).
+ */
+function runInitialAudit() {
+  if (window.useAuditStore) {
+    let s = window.useAuditStore.getState();
+    if (s.setAuditInProgress) s.setAuditInProgress(true);
   }
+  (async function () {
+    try {
+      await waitForAuditStore();
+      await waitForVisibleIframeBodyContent(25000);
+      await runSingleDeviceAuditAndUpdateStore(selectedDevice);
+    } catch (error) {
+      console.error('[WebYes Checker] Initial audit failed:', error);
+      if (window.useAuditStore) {
+        let store = window.useAuditStore.getState();
+        let errorMessage = error && error.message ? error.message : String(error);
+        if (errorMessage.indexOf('timeout') !== -1 || errorMessage.indexOf('Timeout') !== -1 || errorMessage.indexOf('didn\'t load in time') !== -1) {
+          store.setAuditError('timeout');
+        } else {
+          store.setAuditError(errorMessage);
+        }
+        store.setAuditResult(buildMergedAuditResult());
+        if (store.setAuditInProgress) {
+          store.setAuditInProgress(false);
+        }
+      }
+    }
+  })();
 }
 
 /**
@@ -419,7 +498,17 @@ function showDashboard() {
   }
   
   loadDashboardBundle();
-  runInitialAudit();
+
+  // If we already have cached result for the selected device, show it without re-scanning
+  if (hasCachedResultForDevice(selectedDevice)) {
+    if (window.useAuditStore) {
+      let store = window.useAuditStore.getState();
+      store.setAuditResult(buildMergedAuditResult());
+      store.setAuditError(null);
+    }
+  } else {
+    runInitialAudit();
+  }
 }
 
 /**
@@ -553,181 +642,92 @@ function loadDashboardBundle() {
 }
 
 /**
- * Run audit for a specific device viewport
+ * Set the visible page iframe to exact device dimensions for audit (no scale).
+ * Used when auditing via the visible iframe so the document reflows to that viewport.
  */
-async function runAuditForDevice(device, viewport, pageUrl = false) {
-  const targetUrl = pageUrl || window.location.href;
-  
-  try {
-    const auditFrame = document.createElement('iframe');
-    auditFrame.style.cssText = `position: absolute; left: -9999px; width: ${viewport.width}px; height: ${viewport.height}px;`;
-    auditFrame.src = targetUrl;
-    document.body.appendChild(auditFrame);
-    
-    // Wait for iframe to load with multiple fallback mechanisms
-    await new Promise((resolve, reject) => {
-      let timeout;
-      let pollInterval;
-      let resolved = false;
-      const maxWaitMs = 60000; // Increased to 30 seconds
-      const pollIntervalMs = 200; // Check every 200ms
-      const startTime = Date.now();
-      
-      const cleanup = () => {
-        if (timeout) clearTimeout(timeout);
-        if (pollInterval) clearInterval(pollInterval);
-      };
-      
-      const checkIframeReady = () => {
-        try {
-          const auditDoc = auditFrame.contentDocument || auditFrame.contentWindow?.document;
-          if (auditDoc) {
-            // Check if document is ready
-            if (auditDoc.readyState === 'complete' || auditDoc.readyState === 'interactive') {
-              // Try to access body to ensure document is accessible
-              if (auditDoc.body) {
-                return true;
-              }
-            }
-          }
-        } catch (error) {
-          // Cross-origin or access error - might still be loading
-          // For same-origin, this shouldn't happen, so iframe might be blocked
-          return false;
-        }
-        return false;
-      };
-      
-      const resolveIfReady = () => {
-        if (resolved) return;
-        
-        if (checkIframeReady()) {
-          resolved = true;
-          cleanup();
-          
-          try {
-            const auditDoc = auditFrame.contentDocument || auditFrame.contentWindow?.document;
-            if (auditDoc) {
-              const checkerIcon = auditDoc.getElementById('wya11y-checker-icon');
-              if (checkerIcon) checkerIcon.style.display = 'none';
-              const widgetContainer = auditDoc.getElementById('accessibility-plus-container');
-              if (widgetContainer) widgetContainer.style.display = 'none';
-            }
-          } catch (error) {
-            // Ignore access errors
-          }
-          
-          resolve();
-        }
-      };
-      
-      // Primary: onload event handler
-      auditFrame.onload = () => {
-        // Small delay to ensure DOM is ready
-        setTimeout(() => {
-          resolveIfReady();
-        }, 100);
-      };
-      
-      // Fallback: onerror handler
-      auditFrame.onerror = () => {
-        cleanup();
-        if (!resolved) {
-          resolved = true;
-          reject(new Error('Iframe failed to load'));
-        }
-      };
-      
-      // Fallback: Polling mechanism to check iframe readiness
-      pollInterval = setInterval(() => {
-        if (Date.now() - startTime > maxWaitMs) {
-          cleanup();
-          if (!resolved) {
-            resolved = true;
-            reject(new Error(`Iframe load timeout after ${maxWaitMs}ms - page may be too slow or blocked from iframe embedding`));
-          }
-          return;
-        }
-        resolveIfReady();
-      }, pollIntervalMs);
-      
-      // Final timeout safety net
-      timeout = setTimeout(() => {
-        cleanup();
-        if (!resolved) {
-          resolved = true;
-          reject(new Error(`Iframe load timeout after ${maxWaitMs}ms - page may be too slow or blocked from iframe embedding`));
-        }
-      }, maxWaitMs);
-    });
+function setVisibleIframeAuditDimensions(device) {
+  if (!iframeElement) return;
+  const vp = DEVICE_VIEWPORTS[device];
+  if (!vp) return;
+  iframeElement.style.width = vp.width + 'px';
+  iframeElement.style.height = vp.height + 'px';
+  iframeElement.style.transform = 'none';
+  iframeElement.style.transformOrigin = '';
+}
 
-    // Verify we can access the iframe document before proceeding
-    const auditDoc = auditFrame.contentDocument || auditFrame.contentWindow?.document;
-    if (!auditDoc) {
-      throw new Error('Cannot access iframe document - possible cross-origin restriction or X-Frame-Options blocking');
+/**
+ * Inject or update viewport meta in the iframe document for audit (so page reflows to device size).
+ * Returns a restore function to revert to the original viewport meta after audit.
+ */
+function injectViewportMetaForAudit(doc, device) {
+  let vp = DEVICE_VIEWPORTS[device];
+  if (!vp || !doc || !doc.head) return function () {};
+
+  let viewportMeta = doc.querySelector('meta[name="viewport"]');
+  let hadMeta = !!viewportMeta;
+  let originalContent = hadMeta ? viewportMeta.getAttribute('content') : null;
+
+  if (!viewportMeta) {
+    viewportMeta = doc.createElement('meta');
+    viewportMeta.setAttribute('name', 'viewport');
+    doc.head.appendChild(viewportMeta);
+  }
+  viewportMeta.setAttribute('content', 'width=' + vp.width + ', initial-scale=1');
+
+  return function restore() {
+    if (!doc.head) return;
+    let meta = doc.querySelector('meta[name="viewport"]');
+    if (!meta) return;
+    if (hadMeta && originalContent !== null) {
+      meta.setAttribute('content', originalContent);
+    } else if (!hadMeta) {
+      meta.remove();
     }
-    
-    // Load axe-core from local assets
-    const axeScript = auditDoc.createElement('script');
-    const axeUrl = window.wya11yChecker.assetsUrl + 'js/axe.min.js';
-    axeScript.src = axeUrl;
-    auditDoc.head.appendChild(axeScript);
-    
-    await new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Axe-core load timeout')), 10000);
-      axeScript.onload = () => {
-        clearTimeout(timeout);
-        resolve();
-      };
-      axeScript.onerror = () => {
-        clearTimeout(timeout);
-        reject(new Error('Failed to load axe-core'));
-      };
-    });
-    const wcagTags = [
-      'wcag2a','wcag2aa','wcag2aaa',
-      'wcag21a','wcag21aa',
-      'wcag22aa',
-      'section508'
-    ];
-    var runOptions = {
-      runOnly: { type: 'tag', values: wcagTags },
-    };
-    const results = await auditFrame.contentWindow.axe.run(auditDoc, runOptions);
-    
-    // Clean up iframe
-    try {
-      if (auditFrame && auditFrame.parentNode) {
-        document.body.removeChild(auditFrame);
-      }
-    } catch (cleanupError) {
-      console.warn('[WebYes Checker] Error cleaning up audit iframe:', cleanupError);
-    }
-    
-    return results;
-  } catch (error) {
-    // Clean up iframe on error - find and remove any audit iframes
-    try {
-      // Find iframes that are positioned off-screen (our audit iframes)
-      const allIframes = document.querySelectorAll('iframe');
-      allIframes.forEach(iframe => {
-        try {
-          const style = window.getComputedStyle(iframe);
-          if (style.position === 'absolute' && (style.left === '-9999px' || parseInt(style.left) < -9000)) {
-            if (iframe.parentNode) {
-              iframe.parentNode.removeChild(iframe);
-            }
-          }
-        } catch (e) {
-          // Ignore errors during cleanup
-        }
+  };
+}
+
+/**
+ * Run audit using the visible page iframe by resizing it per device.
+ * Avoids hidden-iframe load timeouts; the visible iframe has already loaded.
+ * Caller must restore iframe dimensions after both devices (updateIframeDimensions(selectedDevice)).
+ */
+async function runAuditUsingVisibleIframe(device) {
+  if (!iframeElement || !iframeElement.contentWindow || !iframeElement.contentDocument) {
+    throw new Error('Visible iframe or its document not available');
+  }
+  let auditDoc = iframeElement.contentDocument;
+  let win = iframeElement.contentWindow;
+  if (!auditDoc.body) {
+    throw new Error('Visible iframe document has no body');
+  }
+
+  let vp = DEVICE_VIEWPORTS[device];
+  if (!vp) throw new Error('Unknown device: ' + device);
+
+  setVisibleIframeAuditDimensions(device);
+  let restoreViewportMeta = injectViewportMetaForAudit(auditDoc, device);
+  try {
+    try { win.dispatchEvent(new Event('resize')); } catch (e) {}
+    await new Promise(function (r) { setTimeout(r, 1000); });
+
+    if (!win.webyes || !win.webyes.run) {
+      let axeScript = auditDoc.createElement('script');
+      axeScript.src = (window.wya11yChecker && window.wya11yChecker.assetsUrl ? window.wya11yChecker.assetsUrl : '') + 'js/webyes-a11y-core.min.js';
+      auditDoc.head.appendChild(axeScript);
+      await new Promise(function (resolve, reject) {
+        let t = setTimeout(function () { reject(new Error('Axe-core load timeout')); }, 10000);
+        axeScript.onload = function () { clearTimeout(t); resolve(); };
+        axeScript.onerror = function () { clearTimeout(t); reject(new Error('Failed to load axe-core')); };
       });
-    } catch (cleanupError) {
-      // Ignore cleanup errors
     }
-    
-    console.error(`[WebYes Checker] Error during ${device} audit:`, error);
-    throw error;
+    await new Promise(function (r) { setTimeout(r, 1000); });
+
+    let wcagTags = ['wcag2a', 'wcag2aa', 'wcag2aaa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'section508', 'best-practice'];
+    let runOptions = { runOnly: { type: 'tag', values: wcagTags } };
+    let results = await win.webyes.run(auditDoc, runOptions);
+    return results;
+  } finally {
+    restoreViewportMeta();
   }
 }
 
@@ -736,7 +736,9 @@ async function runAuditForDevice(device, viewport, pageUrl = false) {
  */
 async function loadWCAGGuidelines() {
   try {
-    const guidelinesUrl = window.wya11yChecker.assetsUrl + 'data/wcag_guidelines.json';
+    const baseUrl = window.wya11yChecker.assetsUrl + 'data/wcag_guidelines.json';
+    const version = (window.wya11yChecker && window.wya11yChecker.version) ? window.wya11yChecker.version : '';
+    const guidelinesUrl = version ? baseUrl + '?v=' + encodeURIComponent(version) : baseUrl;
     const response = await fetch(guidelinesUrl);
     
     if (!response.ok) {
@@ -885,57 +887,148 @@ async function enrichWithWCAG(results) {
     });
   };
   
-  // Helper to parse affected disabilities
+  // Helper to parse affected disabilities.
+  // Accepts: (1) pipe-separated "Blind | Low vision | Cognitive", (2) JSON-array string '["blind","deafblind"]', (3) array.
+  // Output is always camelCase keys matching AffectedDisabilities: blind, lowVision, cognitive, mobility, deafBlind, deaf, etc.
   function parseAffectedDisabilities(disabilitiesString) {
     if (!disabilitiesString) return [];
-    
-    // Convert to camelCase to match React component expectations
-    const toCamelCase = (str) => {
-      const trimmed = str.trim();
-      const words = trimmed.split(/\s+/);
-      
+
+    let toCamelCase = function (str) {
+      let trimmed = (str || '').trim();
+      let words = trimmed.split(/\s+/).filter(Boolean);
+      if (words.length === 0) return '';
       if (words.length === 1) {
-        return words[0].toLowerCase();
+        let lower = words[0].toLowerCase();
+        if (lower === 'deafblind') return 'deafBlind';
+        if (lower === 'lowvision') return 'lowVision';
+        if (lower === 'colorblindness' || lower === 'attentiondeficit') return lower;
+        if (lower === 'mobility' || lower === 'cognitive' || lower === 'blind' || lower === 'deaf' || lower === 'hearing') return lower;
+        return lower;
       }
-      
-      // Special cases that don't use camelCase in the component
-      const normalized = words.map(w => w.toLowerCase()).join('');
-      if (normalized === 'colorblindness' || normalized === 'attentiondeficit') {
-        return normalized;
-      }
-      
-      // Convert to camelCase: "Low vision" -> "lowVision"
-      return words[0].toLowerCase() + words.slice(1).map(w => 
-        w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
-      ).join('');
+      let normalized = words.map(function (w) { return w.toLowerCase(); }).join('');
+      if (normalized === 'colorblindness' || normalized === 'attentiondeficit') return normalized;
+      if (normalized === 'deafblind') return 'deafBlind';
+      return words[0].toLowerCase() + words.slice(1).map(function (w) {
+        return w.charAt(0).toUpperCase() + (w.slice(1) || '').toLowerCase();
+      }).join('');
     };
-    
-    // The format is "Blind | Low vision | Cognitive" (pipe-separated)
-    if (typeof disabilitiesString === 'string') {
-      return disabilitiesString
-        .split('|')
-        .map(d => toCamelCase(d))
-        .filter(d => d);
-    }
-    
+
     if (Array.isArray(disabilitiesString)) {
-      return disabilitiesString;
+      return disabilitiesString.map(function (d) {
+        let s = typeof d === 'string' ? d : String(d);
+        return toCamelCase(s);
+      }).filter(Boolean);
     }
-    
+
+    if (typeof disabilitiesString === 'string') {
+      let s = disabilitiesString.trim();
+      if (s.indexOf('[') === 0 && s.indexOf(']') !== -1) {
+        try {
+          let arr = JSON.parse(s);
+          if (Array.isArray(arr)) {
+            return arr.map(function (d) { return toCamelCase(String(d)); }).filter(Boolean);
+          }
+        } catch (e) { /* fall through to pipe-separated */ }
+      }
+      return s.split('|').map(function (d) { return toCamelCase(d); }).filter(Boolean);
+    }
+
     return [];
   }
-  
+
+  // Format best-practice violations (same issue shape as WCAG for detail page reuse)
+  const formatBestPractices = (violations, device) => {
+    const filtered = (violations || []).filter(v => (v.tags || []).includes('best-practice'));
+    return filtered.map((v) => {
+      const guideline = guidelines[v.id] || {};
+      const issueSeverity = guideline.issue_severity || v.impact || 'moderate';
+      const title = guideline.title || v.help || v.id;
+      let standardCode = guideline.standard_code || undefined;
+      let wcagLevel = guideline.wcag_level || '';
+      let wcagVersion = '';
+      if (guideline.wcag_version_number) {
+        const ver = guideline.wcag_version_number;
+        wcagVersion = String(ver).includes('.') ? String(ver) : `${ver}.0`;
+      }
+      if (!standardCode || !wcagLevel || !wcagVersion) {
+        const derived = deriveWcagFromAxeTags(v.tags);
+        if (derived.code && !standardCode) standardCode = derived.code;
+        if (derived.level && !wcagLevel) wcagLevel = derived.level;
+        if (derived.version && !wcagVersion) wcagVersion = derived.version;
+      }
+      const items = (v.nodes || []).map(node => ({
+        node: {
+          snippet: node.html || 'No snippet available',
+          selector: (node.target && node.target[0]) || 'No selector available',
+          nodeLabel: (node.target && node.target[0]) || 'No label available',
+          boundingRect: { top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 }
+        },
+        target: node.target || ['No target available'],
+        explanation: node.failureSummary || 'No explanation available'
+      }));
+      return {
+        issue_id: v.id,
+        issue_title: title,
+        issue_severity: issueSeverity,
+        issue_category: 'best-practice',
+        audit_device: device,
+        wcag_version_number: wcagVersion,
+        wcag_level: wcagLevel,
+        standard_code: standardCode,
+        standard_list_json: v.tags || [],
+        affected_disabilities_json: parseAffectedDisabilities(guideline.affected_disabilities_json),
+        issue_content_json: {
+          id: v.id,
+          title: title,
+          help: guideline.help || v.help || '',
+          helpUrl: v.helpUrl || '',
+          description: guideline.description || v.description || '',
+          layman_description: guideline.layman_description || v.description || '',
+          dev_description: guideline.dev_description || v.description || '',
+          standardCode: standardCode,
+          details: {
+            items: items,
+            debugData: {
+              tags: v.tags || [],
+              impact: issueSeverity
+            }
+          }
+        },
+        audit_data_json: {
+          help: guideline.help || v.help || '',
+          title: title,
+          dev_help: guideline.dev_help || '',
+          help_url: guideline.help_url || v.helpUrl || '',
+          description: guideline.description || v.description || '',
+          layman_help: guideline.layman_help || '',
+          passed_title: guideline.passed_title || '',
+          dev_description: guideline.dev_description || '',
+          layman_description: guideline.layman_description || ''
+        }
+      };
+    });
+  };
+
+  const desktopViolations = results.desktop ? results.desktop.violations : [];
+  const mobileViolations = results.mobile ? results.mobile.violations : [];
+  const bestPracticesDesktop = formatBestPractices(desktopViolations, 'desktop');
+  const bestPracticesMobile = formatBestPractices(mobileViolations, 'mobile');
+
   return {
     body: {
       data: {
         report_data: {
-          desktop: formatViolations(results.desktop.violations, 'desktop'),
-          mobile: formatViolations(results.mobile.violations, 'mobile')
+          desktop: results.desktop ? formatViolations(results.desktop.violations, 'desktop') : [],
+          mobile: results.mobile ? formatViolations(results.mobile.violations, 'mobile') : [],
+          best_practices: {
+            desktop: bestPracticesDesktop,
+            mobile: bestPracticesMobile
+          }
         }
       }
     },
-    mobile: results.mobile,
-    desktop: results.desktop
+    mobile: results.mobile || null,
+    desktop: results.desktop || null
   };
 }
 
@@ -943,33 +1036,99 @@ async function enrichWithWCAG(results) {
  * Run multi-device audit
  */
 async function runMultiDeviceAuditFormattedIsolated() {
-  let pageUrl = null;
-  
-  if (iframeElement) {
-    try {
-      pageUrl = iframeElement.contentWindow.location.href;
-    } catch (error) {
-      pageUrl = window.location.href;
-    }
-  } else {
-    pageUrl = window.location.href;
+  if (!iframeElement || !iframeElement.contentDocument || !iframeElement.contentDocument.body || iframeElement.contentDocument.body.children.length === 0) {
+    throw new Error('Visible iframe or page content not available');
   }
-  
+  let results = {};
+  let savedDevice = selectedDevice;
   try {
-    const results = {};
-    
-    for (const [device, viewport] of Object.entries(DEVICE_VIEWPORTS)) {
-      results[device] = await runAuditForDevice(device, viewport, pageUrl);
+    for (let deviceKey in DEVICE_VIEWPORTS) {
+      if (DEVICE_VIEWPORTS.hasOwnProperty(deviceKey)) {
+        results[deviceKey] = await runAuditUsingVisibleIframe(deviceKey);
+      }
     }
-    
-    const enrichedResults = await enrichWithWCAG(results);
-    currentAuditResult = enrichedResults;
-    
-    return enrichedResults;
-  } catch (error) {
-    console.error('[WebYes Checker] Multi-device audit failed:', error);
-    throw error;
+  } finally {
+    updateIframeDimensions(savedDevice);
   }
+  let enrichedResults = await enrichWithWCAG(results);
+  let rd = enrichedResults.body.data.report_data;
+  currentAuditResultByDevice.desktop = {
+    reportData: rd.desktop,
+    bestPracticesData: rd.best_practices ? rd.best_practices.desktop : [],
+    raw: enrichedResults.desktop
+  };
+  currentAuditResultByDevice.mobile = {
+    reportData: rd.mobile,
+    bestPracticesData: rd.best_practices ? rd.best_practices.mobile : [],
+    raw: enrichedResults.mobile
+  };
+  return enrichedResults;
+}
+
+/**
+ * Run audit for a single device and update cache/store. Respects currentAuditTargetDevice (ignores result if user switched device).
+ * Returns the merged audit result when store was updated, or undefined if audit was ignored (device switched).
+ */
+async function runSingleDeviceAuditAndUpdateStore(device) {
+  if (!iframeElement || !iframeElement.contentDocument || !iframeElement.contentDocument.body || iframeElement.contentDocument.body.children.length === 0) {
+    throw new Error('Visible iframe or page content not available');
+  }
+  currentAuditTargetDevice = device;
+  let store = window.useAuditStore ? window.useAuditStore.getState() : null;
+  if (store && store.setAuditInProgress) {
+    store.setAuditInProgress(true);
+  }
+  let savedDevice = selectedDevice;
+  try {
+    let rawResult = await runAuditUsingVisibleIframe(device);
+    if (currentAuditTargetDevice !== device) {
+      return;
+    }
+    let partialResults = {};
+    partialResults[device] = rawResult;
+    let enriched = await enrichWithWCAG(partialResults);
+    let reportData = enriched.body.data.report_data;
+    let bp = reportData.best_practices || {};
+    currentAuditResultByDevice[device] = {
+      reportData: reportData[device],
+      bestPracticesData: bp[device] || [],
+      raw: rawResult
+    };
+    let merged = buildMergedAuditResult();
+    if (store) {
+      store.setAuditResult(merged);
+      store.setAuditError(null);
+    }
+    return merged;
+  } catch (error) {
+    console.error('[WebYes Checker] Single-device audit failed:', error);
+    if (currentAuditTargetDevice === device && store) {
+      let errorMessage = error && error.message ? error.message : String(error);
+      if (errorMessage.indexOf('timeout') !== -1 || errorMessage.indexOf('Timeout') !== -1 || errorMessage.indexOf('didn\'t load in time') !== -1) {
+        store.setAuditError('timeout');
+      } else {
+        store.setAuditError(errorMessage);
+      }
+    }
+    if (store) {
+      store.setAuditResult(buildMergedAuditResult());
+    }
+    throw error;
+  } finally {
+    updateIframeDimensions(savedDevice);
+    if (store && store.setAuditInProgress) {
+      store.setAuditInProgress(false);
+    }
+  }
+}
+
+/**
+ * Run audit for one device (wait for store/iframe, then run single-device audit). Used by retry; returns merged result.
+ */
+async function runAuditForDeviceOnly(device) {
+  await waitForAuditStore();
+  await waitForVisibleIframeBodyContent(25000);
+  return runSingleDeviceAuditAndUpdateStore(device);
 }
 
 /**
@@ -980,6 +1139,7 @@ window.webyesHighlightUtils = {
   borderedElement: null,
   currentItems: null,
   currentTargetDocument: null,
+  currentIssueCategory: null,  // 'wcag' | 'best-practice' – used for marker/border color
   scrollListener: null,
   selectedIndex: null,  // Track which element is currently selected
   clickOutsideListener: null,  // Track click outside listener
@@ -1031,16 +1191,20 @@ window.webyesHighlightUtils = {
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
           transition: transform 0.2s ease !important;
         }
-        
+        .wya11y-issue-marker.wya11y-issue-marker--best-practice {
+          background-color: #f59e0b !important;
+        }
         .wya11y-issue-marker:hover {
           transform: scale(1.1) !important;
         }
-        
         .wya11y-issue-border {
           outline: 3px solid #dc2626 !important;
           outline-offset: 2px !important;
           position: relative !important;
           z-index: 99998 !important;
+        }
+        .wya11y-issue-border.wya11y-issue-border--best-practice {
+          outline-color: #f59e0b !important;
         }
       `;
       
@@ -1055,8 +1219,8 @@ window.webyesHighlightUtils = {
     }
   },
   
-  // Mark all issue items with red dots
-  markIssueItems(items) {
+  // Mark all issue items with dots (red for violations, amber for best-practice)
+  markIssueItems(items, issueCategory) {
     this.clearMarkers();
     
     const targetDoc = this.getIframeDocument();
@@ -1064,6 +1228,7 @@ window.webyesHighlightUtils = {
       return;
     }
     
+    this.currentIssueCategory = issueCategory === 'best-practice' ? 'best-practice' : 'wcag';
     this.injectMarkerStyles(targetDoc);
     this.currentItems = items;
     this.currentTargetDocument = targetDoc;
@@ -1096,7 +1261,7 @@ window.webyesHighlightUtils = {
   // Create marker button
   createMarkerButton(index, item, targetDoc) {
     const button = targetDoc.createElement('button');
-    button.className = 'wya11y-issue-marker';
+    button.className = 'wya11y-issue-marker' + (this.currentIssueCategory === 'best-practice' ? ' wya11y-issue-marker--best-practice' : '');
     button.id = `wya11y-issue-marker-${index}`;
     button.setAttribute('data-issue-index', index.toString());
     button.setAttribute('data-selector', item.target?.[0] || '');
@@ -1312,7 +1477,7 @@ window.webyesHighlightUtils = {
     }, '*');
   },
   
-  // Add border to element
+  // Add border to element (red for violations, amber for best-practice)
   addElementBorder(selector) {
     this.removeElementBorder();
     
@@ -1322,6 +1487,9 @@ window.webyesHighlightUtils = {
     const element = targetDoc.querySelector(selector);
     if (element) {
       element.classList.add('wya11y-issue-border');
+      if (this.currentIssueCategory === 'best-practice') {
+        element.classList.add('wya11y-issue-border--best-practice');
+      }
       this.borderedElement = element;
     }
   },
@@ -1329,7 +1497,7 @@ window.webyesHighlightUtils = {
   // Remove border from element
   removeElementBorder() {
     if (this.borderedElement) {
-      this.borderedElement.classList.remove('wya11y-issue-border');
+      this.borderedElement.classList.remove('wya11y-issue-border', 'wya11y-issue-border--best-practice');
       this.borderedElement = null;
     }
   },
@@ -1375,29 +1543,14 @@ window.webyesHighlightUtils = {
 };
 
 /**
- * Run audit with proper preparation (same as initial audit)
- * This ensures iframe is ready and all delays are in place
+ * Run audit with proper preparation for the currently selected device (used by retry / Scan again).
  */
 async function runAuditWithPreparation() {
-  try {
-    // Wait for audit store (if needed)
-    if (!window.useAuditStore) {
-      await waitForAuditStore();
-    }
-    
-    // Wait for iframe to be ready
-    await waitForIframeReady();
-    
-    // Additional delay to ensure everything is ready
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Now run the audit
-    const results = await runMultiDeviceAuditFormattedIsolated();
-    return results;
-  } catch (error) {
-    console.error('[WebYes Checker] Audit with preparation failed:', error);
-    throw error;
+  if (!window.useAuditStore) {
+    await waitForAuditStore();
   }
+  await waitForVisibleIframeBodyContent(25000);
+  return runSingleDeviceAuditAndUpdateStore(selectedDevice);
 }
 
 /**
@@ -1405,7 +1558,9 @@ async function runAuditWithPreparation() {
  */
 window.webyesAuditUtils = {
   runMultiDeviceAuditFormattedIsolated,
-  runAuditWithPreparation // New method with proper preparation
+  runAuditWithPreparation,
+  runAuditForDeviceOnly,
+  buildMergedAuditResult
 };
 
 /**

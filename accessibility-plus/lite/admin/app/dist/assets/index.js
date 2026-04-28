@@ -1,4 +1,4 @@
-var _a, _b, _c, _d;
+var _a, _b, _c, _d, _e;
 import { j as jsxRuntimeExports, r as reactExports, R as React, a as requireReact, b as requireReactDom, g as getDefaultExportFromCjs, c as create, d as React$1, e as clientExports } from "./react.js";
 var prefix = "Invariant failed";
 function invariant(condition, message) {
@@ -2034,7 +2034,7 @@ const handleBeforeLoad = (inner, index2) => {
   return serverSsr();
 };
 const executeHead = (inner, matchId, route) => {
-  var _a2, _b2, _c2, _d2, _e, _f;
+  var _a2, _b2, _c2, _d2, _e2, _f;
   const match = inner.router.getMatch(matchId);
   if (!match) {
     return;
@@ -2051,7 +2051,7 @@ const executeHead = (inner, matchId, route) => {
   return Promise.all([
     (_b2 = (_a2 = route.options).head) == null ? void 0 : _b2.call(_a2, assetContext),
     (_d2 = (_c2 = route.options).scripts) == null ? void 0 : _d2.call(_c2, assetContext),
-    (_f = (_e = route.options).headers) == null ? void 0 : _f.call(_e, assetContext)
+    (_f = (_e2 = route.options).headers) == null ? void 0 : _f.call(_e2, assetContext)
   ]).then(([headFnContent, scripts, headers]) => {
     const meta = headFnContent == null ? void 0 : headFnContent.meta;
     const links = headFnContent == null ? void 0 : headFnContent.links;
@@ -8714,6 +8714,7 @@ const FeatureItem = ({
     /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:text-sm", children: message })
   ] });
 };
+const PLUGIN_VERSION = ((_a = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _a.version) ?? "";
 const PromoBanner = () => {
   const features = [
     /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -8778,7 +8779,7 @@ const PromoBanner = () => {
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:mt-auto cy:bg-[#1B365D] cy:py-7 cy:pl-[19px] cy:pr-[19px] cy:rounded-2xl cy:text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
           "a",
           {
-            href: "https://accessibility.webyes.com/signUp?utm_source=Pluginscreen&utm_medium=AccessibilityPlus&utm_campaign=PluginSignups&utm_content=2.0.9",
+            href: `https://accessibility.webyes.com/trial?plan=accessibility_pro_monthly&utm_source=Pluginscreen&utm_medium=AccessibilityPlus&utm_campaign=PluginSignups&utm_content=${PLUGIN_VERSION}`,
             className: "cy:w-full cy:bg-white cy:hover:bg-white/90!  cy:text-[#0251AF]! cy:font-bold cy:text-base! cy:px-7 cy:py-2 cy:rounded",
             target: "_blank",
             children: "Audit My Site Now"
@@ -10371,9 +10372,9 @@ apiFetch.createRootURLMiddleware = createRootURLMiddleware;
 apiFetch.fetchAllMiddleware = fetchAllMiddleware;
 apiFetch.mediaUploadMiddleware = mediaUploadMiddleware;
 apiFetch.createThemePreviewMiddleware = createThemePreviewMiddleware;
-apiFetch.use(apiFetch.createNonceMiddleware(((_b = (_a = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _a.api) == null ? void 0 : _b.nonce) || ""));
+apiFetch.use(apiFetch.createNonceMiddleware(((_c = (_b = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _b.api) == null ? void 0 : _c.nonce) || ""));
 apiFetch.use(
-  apiFetch.createRootURLMiddleware(((_d = (_c = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _c.api) == null ? void 0 : _d.endpoint) || "")
+  apiFetch.createRootURLMiddleware(((_e = (_d = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _d.api) == null ? void 0 : _e.endpoint) || "")
 );
 const toStringParams = (params) => Object.entries(params).map(([key, value]) => [key, String(value)]);
 const api = {
@@ -12679,6 +12680,201 @@ const BlackFridayBanner = () => {
     ) })
   ] }) }) });
 };
+const BOOK_CALL_URL = `https://www.webyes.com/free-accessibility-consulting/?utm_source=accessibility_toolkit&utm_medium=wordpress&utm_campaign=consultation&utm_content=${PLUGIN_VERSION}`;
+const StarSVG = () => /* @__PURE__ */ jsxRuntimeExports.jsx(
+  "svg",
+  {
+    width: "28",
+    height: "28",
+    viewBox: "0 0 35 35",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg",
+    "aria-hidden": "true",
+    children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "path",
+      {
+        d: "M16.8073 3.34686C16.8712 3.21774 16.9699 3.10906 17.0923 3.03307C17.2147 2.95708 17.3559 2.91681 17.5 2.91681C17.6441 2.91681 17.7853 2.95708 17.9077 3.03307C18.0301 3.10906 18.1288 3.21774 18.1927 3.34686L21.5615 10.1704C21.7834 10.6195 22.111 11.0081 22.5161 11.3027C22.9213 11.5974 23.3919 11.7893 23.8875 11.8621L31.4213 12.9646C31.564 12.9853 31.6981 13.0455 31.8084 13.1384C31.9188 13.2313 32.0009 13.3533 32.0455 13.4905C32.0901 13.6276 32.0954 13.7745 32.0609 13.9146C32.0263 14.0546 31.9533 14.1822 31.85 14.2829L26.4017 19.5883C26.0424 19.9385 25.7735 20.3707 25.6183 20.8478C25.4631 21.3249 25.4261 21.8325 25.5106 22.3271L26.7969 29.8229C26.8221 29.9656 26.8067 30.1125 26.7524 30.2468C26.6981 30.3812 26.6072 30.4975 26.49 30.5827C26.3727 30.6678 26.2339 30.7183 26.0894 30.7284C25.9449 30.7384 25.8004 30.7077 25.6725 30.6396L18.9379 27.0987C18.4942 26.8657 18.0005 26.744 17.4993 26.744C16.9981 26.744 16.5044 26.8657 16.0606 27.0987L9.32752 30.6396C9.19967 30.7073 9.05539 30.7377 8.91109 30.7274C8.7668 30.7172 8.62828 30.6666 8.51128 30.5816C8.39429 30.4965 8.30353 30.3803 8.24931 30.2461C8.19509 30.112 8.1796 29.9654 8.2046 29.8229L9.48939 22.3285C9.57426 21.8338 9.5375 21.3258 9.38226 20.8484C9.22703 20.371 8.95799 19.9385 8.59835 19.5883L3.15002 14.2844C3.04589 14.1838 2.97209 14.056 2.93705 13.9155C2.902 13.775 2.90712 13.6276 2.9518 13.4898C2.99649 13.3521 3.07895 13.2298 3.1898 13.1366C3.30065 13.0435 3.43542 12.9834 3.57877 12.9631L11.1111 11.8621C11.6073 11.7899 12.0785 11.5982 12.4842 11.3035C12.8899 11.0088 13.2179 10.62 13.44 10.1704L16.8073 3.34686Z",
+        fill: "#FFB700"
+      }
+    )
+  }
+);
+const AccessibilityIcon = () => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+  "svg",
+  {
+    width: "12",
+    height: "14",
+    viewBox: "0 0 14 16",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg",
+    "aria-hidden": "true",
+    children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "7", cy: "2.5", r: "2", fill: "white" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "path",
+        {
+          d: "M3.5 5.5L7 6.5L10.5 5.5M7 6.5V10M5 14L7 10L9 14",
+          stroke: "white",
+          strokeWidth: "1.4",
+          strokeLinecap: "round",
+          strokeLinejoin: "round"
+        }
+      )
+    ]
+  }
+);
+const ConsultationBanner = () => {
+  const { isVisible, handleDismiss } = useBanner({
+    slug: "consultation-banner",
+    defaultState: {
+      dismissed: false,
+      dismissedAt: null
+    }
+  });
+  if (!isVisible) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:mb-6", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:min-h-[112px] cy:relative cy:bg-gradient-to-br cy:from-blue-600 cy:to-sky-500 cy:overflow-hidden cy:rounded-xl cy:flex cy:items-center cy:pl-[267px] cy:pr-10 cy:py-4", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "div",
+      {
+        "aria-hidden": "true",
+        className: "cy:w-12 cy:h-48 cy:absolute cy:origin-top-left cy:bg-blue-800 cy:blur-[50px]",
+        style: {
+          left: "calc(100% - 115px)",
+          top: "-52.16px",
+          transform: "rotate(-50.18deg)",
+          boxShadow: "-24px 4px 28px 0px rgba(0,0,0,0.25)"
+        }
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        "aria-hidden": "true",
+        className: "cy:w-28 cy:h-32 cy:left-[30px] cy:top-[15px] cy:absolute cy:bg-white cy:rounded-2xl cy:outline cy:outline-2 cy:outline-white/30 cy:overflow-hidden",
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-12 cy:h-10 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 59, top: 17.29 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-24 cy:h-5 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 8.81, top: 74.17 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-8 cy:h-6 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 8.81, top: 88.06 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-8 cy:h-6 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 43.15, top: 88.06 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-8 cy:h-6 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 77.49, top: 88.06 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-11 cy:h-1.5 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 8.81, top: 23.02 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-4 cy:h-1.5 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 8.81, top: 47.67 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:w-4 cy:h-1.5 cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { left: 27.74, top: 47.67 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { width: 40, height: 2.64, left: 8.81, top: 32.26 }
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              className: "cy:absolute cy:bg-indigo-100 cy:rounded-sm",
+              style: { width: 28, height: 2.64, left: 8.81, top: 37.55 }
+            }
+          )
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "div",
+      {
+        "aria-hidden": "true",
+        className: "cy:px-2.5 cy:py-1.5 cy:left-[70px] cy:top-[32px] cy:absolute cy:bg-white cy:rounded-xl cy:inline-flex cy:justify-start cy:items-center cy:gap-2",
+        style: { boxShadow: "0px 16px 24px 0px rgba(33,15,111,0.37)" },
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:w-6 cy:h-6 cy:bg-[#0B66E4] cy:rounded-full cy:flex cy:items-center cy:justify-center cy:shrink-0", children: /* @__PURE__ */ jsxRuntimeExports.jsx(AccessibilityIcon, {}) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:text-zinc-800 cy:text-xs cy:font-medium cy:leading-4 cy:whitespace-nowrap", children: "Accessibility Expert" })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:flex-1 cy:items-center cy:justify-between cy:gap-4 cy:min-w-0", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:flex-col cy:justify-center cy:items-start cy:gap-1.5 cy:min-w-0", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-xl cy:font-bold cy:leading-8 cy:text-white", children: "You've unlocked a free 45-min accessibility consultation!" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "cy:text-white cy:text-sm cy:font-normal cy:leading-5", children: [
+            "Get a live site review + a clear, prioritised plan for",
+            " "
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:text-white cy:text-sm cy:font-bold cy:leading-5", children: "WCAG 2.2, ADA & EAA." })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:shrink-0", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "a",
+        {
+          href: BOOK_CALL_URL,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          className: "cy:px-9 cy:py-3 cy:bg-white cy:hover:bg-white/90 cy:rounded cy:inline-flex cy:justify-center cy:items-center cy:gap-2.5 cy:text-[#0B66E4]! cy:text-base cy:font-bold! cy:leading-6 cy:no-underline",
+          children: [
+            "Book a call",
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:sr-only", children: "(opens in a new tab)" })
+          ]
+        }
+      ) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:w-9 cy:h-9 cy:left-[12px] cy:top-[7px] cy:absolute cy:overflow-hidden cy:flex cy:items-center cy:justify-center cy:z-20", children: /* @__PURE__ */ jsxRuntimeExports.jsx(StarSVG, {}) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        onClick: handleDismiss,
+        className: "cy:w-6 cy:h-6 cy:absolute cy:top-[9px] cy:right-[9px] cy:z-50 cy:flex cy:items-center cy:justify-center cy:text-white/70 cy:hover:text-white cy:transition-colors cy:rounded-full cy:hover:bg-white/10 cy:bg-transparent cy:border-0 cy:cursor-pointer",
+        "aria-label": "Dismiss banner",
+        type: "button",
+        children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 16 })
+      }
+    )
+  ] }) });
+};
 function __insertCSS(code) {
   if (typeof document == "undefined") return;
   let head = document.head || document.getElementsByTagName("head")[0];
@@ -13779,6 +13975,7 @@ const Route$4 = createRootRoute({
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:max-w-7xl cy:mx-auto", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(WalkthroughBanner, {}),
         /* @__PURE__ */ jsxRuntimeExports.jsx(ReviewBanner, {}),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(ConsultationBanner, {}),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:grid cy:grid-cols-12 cy:gap-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:col-span-9", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:col-span-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(PromoBanner, {}) })
@@ -15006,37 +15203,37 @@ const CATEGORIES = {
 const CATEGORY_LEARN_MORE = {
   [CATEGORIES.READABILITY]: {
     text: "Learn how lang and dir attributes fixes readability",
-    url: "https://www.webyes.com/documentation/how-to-add-dir-and-lang-attributes?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/how-to-add-dir-and-lang-attributes?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "how lang and dir attributes fixes readability"
   },
   [CATEGORIES.KEYBOARD_NAVIGATION]: {
     text: "Enable these options on to have accessibility fixes applied automatically to your markup. ",
-    url: "https://www.webyes.com/documentation/how-keyboard-navigation-enhances-web-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/how-keyboard-navigation-enhances-web-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "accessibility fixes"
   },
   [CATEGORIES.ACCESSIBLE_NAME]: {
     text: "See our guide on Why Managing Accessible Names Is Important",
-    url: "https://www.webyes.com/documentation/managing-accessible-name?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/managing-accessible-name?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "Why Managing Accessible Names Is Important"
   },
   [CATEGORIES.RESPONSIVE_DESIGN]: {
     text: "Ensure you have the fundamentals of mobile responsiveness implemented.",
-    url: "https://www.webyes.com/documentation/responsive-design-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/responsive-design-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "fundamentals of mobile responsiveness implemented"
   },
   [CATEGORIES.LINK_VISIBILITY]: {
     text: "Remove color independence from links and ensure proper link visibility.",
-    url: "https://www.webyes.com/documentation/link-visibility-in-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/link-visibility-in-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "link visibility"
   },
   [CATEGORIES.LINK_BEHAVIOR]: {
     text: "Remove uncertainty and avoid confusion with predictable link behavior.",
-    url: "https://www.webyes.com/documentation/link-behaviour-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/link-behaviour-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "predictable link behavior"
   },
   [CATEGORIES.FORM_LABELS]: {
     text: "Understand the fundamentals of making forms accessible.",
-    url: "https://www.webyes.com/documentation/proper-form-labelling-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=2.0.9",
+    url: `https://www.webyes.com/documentation/proper-form-labelling-accessibility?utm_source=IssueFixes&utm_medium=AccessibilityPlus&utm_campaign=Documentation&utm_content=${PLUGIN_VERSION}`,
     linkText: "fundamentals of making forms accessible"
   }
 };
@@ -15214,7 +15411,7 @@ function useToast() {
   loading: toast.loading
 });
 const SkeletonLoader = () => {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:max-w-7xl cy:mx-auto cy:grid cy:grid-cols-12 cy:gap-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:col-span-9 cy:bg-white cy:rounded-lg cy:shadow-sm", children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:bg-white cy:rounded-lg cy:shadow-sm", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:border-b cy:border-gray-200 cy:pb-6 cy:p-6", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-6 cy:bg-gray-200 cy:rounded cy:w-48 cy:mb-2 cy:animate-pulse" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-4 cy:bg-gray-100 cy:rounded cy:w-96 cy:animate-pulse" })
@@ -15290,7 +15487,7 @@ const SkeletonLoader = () => {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:py-2 cy:mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-10 cy:bg-gray-200 cy:rounded cy:w-32 cy:animate-pulse" }) })
     ] })
-  ] }) });
+  ] });
 };
 const Route$3 = createFileRoute("/issue-fixes")({
   component: IssueFixes
@@ -16909,7 +17106,7 @@ function isTopLayer(element) {
   return topLayerSelectors.some((selector) => {
     try {
       return element.matches(selector);
-    } catch (_e) {
+    } catch (_e2) {
       return false;
     }
   });
@@ -17503,7 +17700,7 @@ function observeMove(element, onMove) {
         // Handle <iframe>s
         root: root.ownerDocument
       });
-    } catch (_e) {
+    } catch (_e2) {
       io = new IntersectionObserver(handleObserve, options);
     }
     io.observe(element);
@@ -17925,7 +18122,7 @@ var CONTENT_NAME$3 = "PopperContent";
 var [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME$3);
 var PopperContent = reactExports.forwardRef(
   (props, forwardedRef) => {
-    var _a2, _b2, _c2, _d2, _e, _f;
+    var _a2, _b2, _c2, _d2, _e2, _f;
     const {
       __scopePopper,
       side = "bottom",
@@ -18024,7 +18221,7 @@ var PopperContent = reactExports.forwardRef(
           zIndex: contentZIndex,
           ["--radix-popper-transform-origin"]: [
             (_d2 = middlewareData.transformOrigin) == null ? void 0 : _d2.x,
-            (_e = middlewareData.transformOrigin) == null ? void 0 : _e.y
+            (_e2 = middlewareData.transformOrigin) == null ? void 0 : _e2.y
           ].join(" "),
           // hide the content if using the hide middleware and should be hidden
           // set visibility to hidden and disable pointer events so the UI behaves
@@ -21567,7 +21764,7 @@ const AccessibilityCheckerIcon = ({
   }
 );
 const AccessibilityCheckerTab = ({ onSave }) => {
-  var _a2, _b2, _c2, _d2, _e, _f, _g, _h, _i, _j, _k, _l;
+  var _a2, _b2, _c2, _d2, _e2, _f, _g, _h, _i, _j, _k, _l;
   const { config, setChecker, isLoading, error } = useConfigStore();
   const isDisabled = !((_a2 = config.checker) == null ? void 0 : _a2.enabled);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -21618,7 +21815,7 @@ const AccessibilityCheckerTab = ({ onSave }) => {
                           type: "radio",
                           name: "checker-position",
                           value: "left",
-                          checked: ((_f = (_e = config.checker) == null ? void 0 : _e.placement) == null ? void 0 : _f.position) === "left",
+                          checked: ((_f = (_e2 = config.checker) == null ? void 0 : _e2.placement) == null ? void 0 : _f.position) === "left",
                           onChange: () => setChecker("placement.position", "left"),
                           disabled: isDisabled,
                           className: "cy:w-4 cy:h-4 cy:text-blue-600 focus:cy:ring-blue-500 cy:flex-shrink-0"
@@ -27392,7 +27589,7 @@ function TechnicalSpecificationsStep({
   data,
   onChange
 }) {
-  var _a2, _b2, _c2, _d2, _e, _f, _g, _h, _i, _j, _k, _l;
+  var _a2, _b2, _c2, _d2, _e2, _f, _g, _h, _i, _j, _k, _l;
   const addCompatibleBrowser = () => {
     if (data.knownCompatibilities.browsers.length < 5) {
       onChange(
@@ -27934,7 +28131,7 @@ function TechnicalSpecificationsStep({
               Checkbox,
               {
                 id: "assessment-self",
-                checked: ((_e = (_d2 = data.assessmentApproach) == null ? void 0 : _d2.selected) == null ? void 0 : _e.includes(
+                checked: ((_e2 = (_d2 = data.assessmentApproach) == null ? void 0 : _d2.selected) == null ? void 0 : _e2.includes(
                   "Self-evaluation"
                 )) || false,
                 onCheckedChange: (checked) => handleAssessmentToggle("Self-evaluation", checked)

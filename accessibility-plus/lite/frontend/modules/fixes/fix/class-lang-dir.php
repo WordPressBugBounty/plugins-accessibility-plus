@@ -45,7 +45,7 @@ class Lang_Dir {
 	 */
 	public function add_lang_dir_config( $config ) {
 		$status = $config['fixes']['langDir']['status'];
-		if ( $status || true ) {
+		if ( $status) {
 			$config['fixes']['langDir']['language']  = get_bloginfo( 'language' );
 			$config['fixes']['langDir']['direction'] = is_rtl() ? 'rtl' : 'ltr';
 		}

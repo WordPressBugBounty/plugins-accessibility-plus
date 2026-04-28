@@ -1,4 +1,4 @@
-import { j as jsxRuntimeExports, R as React, c as create, r as reactExports, e as clientExports } from "./react.js";
+import { j as jsxRuntimeExports, c as create, R as React, r as reactExports, e as clientExports } from "./react.js";
 const CloseIcon = ({
   width = 14,
   height = 14,
@@ -252,6 +252,30 @@ const Header = ({
     ] })
   ] });
 };
+const useAuditStore = create()((set) => ({
+  selectedDevice: "desktop",
+  setSelectedDevice: (device) => set({ selectedDevice: device }),
+  auditResult: null,
+  setAuditResult: (result) => set({ auditResult: result }),
+  selectedIssue: null,
+  setSelectedIssue: (issue) => set({ selectedIssue: issue }),
+  selectedIssueId: null,
+  setSelectedIssueId: (id) => set({ selectedIssueId: id }),
+  selectedIssueCategory: null,
+  setSelectedIssueCategory: (category) => set({ selectedIssueCategory: category }),
+  wcagFilter: "2.1_AA",
+  setWcagFilter: (filter) => set({ wcagFilter: filter }),
+  issueElement: null,
+  setIssueElement: (element) => set({ issueElement: element }),
+  isDashboardVisible: true,
+  setIsDashboardVisible: (visible) => set({ isDashboardVisible: visible }),
+  selectedElementIndex: null,
+  setSelectedElementIndex: (index) => set({ selectedElementIndex: index }),
+  auditError: null,
+  setAuditError: (error) => set({ auditError: error }),
+  auditInProgress: false,
+  setAuditInProgress: (value) => set({ auditInProgress: value })
+}));
 const Card = ({
   children,
   className = "",
@@ -477,26 +501,6 @@ const TimeoutError = ({
     )
   ] }) }) });
 };
-const useAuditStore = create()((set) => ({
-  selectedDevice: "desktop",
-  setSelectedDevice: (device) => set({ selectedDevice: device }),
-  auditResult: null,
-  setAuditResult: (result) => set({ auditResult: result }),
-  selectedIssue: null,
-  setSelectedIssue: (issue) => set({ selectedIssue: issue }),
-  selectedIssueId: null,
-  setSelectedIssueId: (id) => set({ selectedIssueId: id }),
-  wcagFilter: "2.1_AA",
-  setWcagFilter: (filter) => set({ wcagFilter: filter }),
-  issueElement: null,
-  setIssueElement: (element) => set({ issueElement: element }),
-  isDashboardVisible: true,
-  setIsDashboardVisible: (visible) => set({ isDashboardVisible: visible }),
-  selectedElementIndex: null,
-  setSelectedElementIndex: (index) => set({ selectedElementIndex: index }),
-  auditError: null,
-  setAuditError: (error) => set({ auditError: error })
-}));
 const OverviewBackground = ({ width = 278, height = 320, className = "", ...props }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
   "svg",
   {
@@ -743,42 +747,49 @@ const OverviewBackground = ({ width = 278, height = 320, className = "", ...prop
   }
 );
 const OverviewPage = ({ onNavigate }) => {
-  const [isAnalyzing, setIsAnalyzing] = reactExports.useState(true);
-  const { auditResult, auditError, setAuditError, setAuditResult } = useAuditStore();
+  const { auditResult, auditError, auditInProgress, setAuditError, setAuditResult } = useAuditStore();
+  const isAnalyzing = auditInProgress || auditResult === null && !auditError;
   reactExports.useEffect(() => {
-    if (auditResult) {
-      setIsAnalyzing(false);
+    if (auditResult && !auditInProgress) {
       setAuditError(null);
       onNavigate("accessibilityIssueHeading");
-    } else if (!auditError && !isAnalyzing) {
-      setIsAnalyzing(true);
     }
-  }, [auditResult, auditError, isAnalyzing, onNavigate, setAuditError]);
+  }, [auditResult, auditInProgress, onNavigate, setAuditError]);
   const handleRetry = () => {
     setAuditError(null);
     setAuditResult(null);
-    setIsAnalyzing(true);
     if (window.webyesAuditUtils) {
-      const auditFunction = window.webyesAuditUtils.runAuditWithPreparation || window.webyesAuditUtils.runMultiDeviceAuditFormattedIsolated;
-      auditFunction().then((results) => {
-        setAuditResult(results);
-        setAuditError(null);
-      }).catch((error) => {
-        console.error("[WebYes Checker] Retry audit failed:", error);
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        if (errorMessage.includes("timeout") || errorMessage.includes("Timeout")) {
-          setAuditError("timeout");
-        } else {
-          setAuditError(errorMessage);
-        }
-        setAuditResult(null);
-        setIsAnalyzing(false);
-      });
+      const auditFunction = window.webyesAuditUtils.runAuditWithPreparation;
+      if (auditFunction) {
+        auditFunction().then((results) => {
+          if (results) {
+            setAuditResult(results);
+            setAuditError(null);
+          }
+        }).catch((error) => {
+          console.error("[WebYes Checker] Retry audit failed:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes("timeout") || errorMessage.includes("Timeout")) {
+            setAuditError("timeout");
+          } else {
+            setAuditError(errorMessage);
+          }
+          setAuditResult(buildMergedOrNull());
+        });
+      } else {
+        setAuditError("Audit utilities not available");
+      }
     } else {
       setAuditError("Audit utilities not available");
-      setIsAnalyzing(false);
     }
   };
+  function buildMergedOrNull() {
+    const utils = window.webyesAuditUtils;
+    if (utils && typeof utils.buildMergedAuditResult === "function") {
+      return utils.buildMergedAuditResult();
+    }
+    return null;
+  }
   if (auditError) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:relative cy:flex cy:flex-col cy:gap-6 cy:px-4 cy:py-6 cy:min-h-[500px]", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:relative cy:z-10", children: /* @__PURE__ */ jsxRuntimeExports.jsx(TimeoutError, { onRetry: handleRetry }) }) });
   }
@@ -1039,7 +1050,7 @@ function deriveWcagVersion(issue) {
   return null;
 }
 const IssueListingPage = ({ onNavigate }) => {
-  const { auditResult, selectedDevice, setSelectedIssue, setSelectedIssueId, wcagFilter, setWcagFilter } = useAuditStore();
+  const { auditResult, selectedDevice, setSelectedIssue, setSelectedIssueId, setSelectedIssueCategory, wcagFilter, setWcagFilter } = useAuditStore();
   const currentDevice = deviceToKey(selectedDevice);
   const otherDevice = currentDevice === "desktop" ? "mobile" : "desktop";
   const wcagFilterDisplay = reactExports.useMemo(() => {
@@ -1076,6 +1087,13 @@ const IssueListingPage = ({ onNavigate }) => {
     const list = Array.isArray(data[currentDevice]) ? data[currentDevice] : [];
     return list.filter(matchesFilter);
   }, [auditResult, currentDevice, wcagFilter]);
+  const bestPractices = reactExports.useMemo(() => {
+    var _a, _b;
+    const data = ((_b = (_a = auditResult == null ? void 0 : auditResult.body) == null ? void 0 : _a.data) == null ? void 0 : _b.report_data) || {};
+    const bp = data.best_practices || {};
+    const list = Array.isArray(bp[currentDevice]) ? bp[currentDevice] : [];
+    return list;
+  }, [auditResult, currentDevice]);
   if (!auditResult) {
     return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-gray-700 cy:p-4", children: "Run an accessibility audit first from the Overview page." });
   }
@@ -1103,7 +1121,7 @@ const IssueListingPage = ({ onNavigate }) => {
         ]
       }
     ) }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:space-y-1 cy:px-4", children: issues.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:flex-col cy:items-center cy:justify-center cy:py-12 cy:px-4", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:space-y-1 cy:px-4", children: issues.length === 0 && bestPractices.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:flex-col cy:items-center cy:justify-center cy:py-12 cy:px-4", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(NoIssuesFound, { width: 164, height: 152 }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "cy:mt-4 cy:text-lg cy:font-semibold cy:text-gray-900", children: [
         "No issues found on ",
@@ -1129,6 +1147,7 @@ const IssueListingPage = ({ onNavigate }) => {
         {
           className: "cy:bg-white cy:rounded-lg cy:border cy:border-gray-200 cy:p-3 cy:flex cy:items-start cy:justify-between cy:cursor-pointer cy:hover:bg-gray-50",
           onClick: () => {
+            setSelectedIssueCategory("wcag");
             setSelectedIssue(issue);
             setSelectedIssueId((issue == null ? void 0 : issue.issue_id) || null);
             onNavigate("accessibilityIssueDetails");
@@ -1150,7 +1169,45 @@ const IssueListingPage = ({ onNavigate }) => {
         },
         idx
       );
-    }) })
+    }) }),
+    bestPractices.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:px-4 cy:pt-4 cy:pb-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:items-center cy:gap-2 cy:mb-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "cy:text-base cy:font-semibold cy:text-gray-900 cy:m-0", children: "Best practices" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:inline-flex cy:items-center cy:px-2 cy:py-0.5 cy:rounded cy:text-xs cy:font-medium cy:bg-purple-100 cy:text-purple-700", "aria-hidden": "true", children: "New" })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:space-y-1", children: bestPractices.map((issue, idx) => {
+        var _a, _b, _c;
+        const affected = Number(((_c = (_b = (_a = issue == null ? void 0 : issue.issue_content_json) == null ? void 0 : _a.details) == null ? void 0 : _b.items) == null ? void 0 : _c.length) || 0);
+        const wcagLabel = deriveWcagVersion(issue) || "Best practice";
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: "cy:bg-white cy:rounded-lg cy:border cy:border-gray-200 cy:p-3 cy:flex cy:items-start cy:justify-between cy:cursor-pointer cy:hover:bg-gray-50",
+            onClick: () => {
+              setSelectedIssueCategory("best-practice");
+              setSelectedIssue(issue);
+              setSelectedIssueId((issue == null ? void 0 : issue.issue_id) || null);
+              onNavigate("accessibilityIssueDetails");
+            },
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:items-start cy:gap-3 cy:pr-2", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-2.5 cy:w-2.5", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:mt-1 cy:inline-block cy:w-2.5 cy:h-2.5 cy:bg-amber-500 cy:rounded-full" }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:font-semibold cy:text-gray-900", children: (issue == null ? void 0 : issue.issue_title) || (issue == null ? void 0 : issue.issue_id) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-xs cy:text-gray-500 cy:mt-0.5", children: wcagLabel }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:text-xs cy:text-gray-500 cy:mt-0.5", children: [
+                    "Elements affected: ",
+                    affected
+                  ] })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("svg", { className: "cy:w-4 cy:h-4 cy:text-gray-400", fill: "none", stroke: "currentColor", viewBox: "0 0 24 24", children: /* @__PURE__ */ jsxRuntimeExports.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M9 5l7 7-7 7" }) })
+            ]
+          },
+          idx
+        );
+      }) })
+    ] })
   ] });
 };
 function Blind({
@@ -1463,7 +1520,9 @@ const AffectedDisabilities = ({
     },
     deafBlind: {
       icon: DeafBlindIcon,
-      name: "Deaf Blind"
+      name: "Deaf Blind",
+      widthRatio: 57 / 32
+      // SVG is 57x32 so needs wider slot than a single square icon
     }
   };
   const uniqueDisabilities = Array.from(new Set(disabilities)).filter(
@@ -1476,25 +1535,33 @@ const AffectedDisabilities = ({
     const iconData = disabilityIconMap[disability];
     if (!iconData) return null;
     const IconComponent = iconData.icon;
+    const widthRatio = iconData.widthRatio ?? 1;
+    const wrapperWidth = Math.ceil(iconSize * widthRatio);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(
       "div",
       {
-        className: "cy:relative cy:group",
+        className: "cy:relative cy:group cy:flex-shrink-0",
         title: iconData.name,
         style: {
-          width: `${iconSize}px`,
+          width: `${wrapperWidth}px`,
           height: `${iconSize}px`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center"
         },
         children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: {
-            width: `${iconSize}px`,
-            height: `${iconSize}px`,
-            transform: `scale(${iconSize / 32})`,
-            transformOrigin: "center"
-          }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconComponent, {}) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "div",
+            {
+              style: {
+                width: `${32 * widthRatio}px`,
+                height: "32px",
+                transform: `scale(${iconSize / 32})`,
+                transformOrigin: "center"
+              },
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconComponent, {})
+            }
+          ),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:absolute cy:bottom-full cy:left-1/2 cy:transform cy:-translate-x-1/2 cy:mb-2 cy:px-2 cy:py-1 cy:bg-gray-800 cy:text-white cy:text-xs cy:rounded cy:opacity-0 cy:group-hover:opacity-100 cy:transition-opacity cy:pointer-events-none cy:whitespace-nowrap cy:z-10", children: [
             iconData.name,
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:absolute cy:top-full cy:left-1/2 cy:transform cy:-translate-x-1/2 cy:border-4 cy:border-transparent cy:border-t-gray-800" })
@@ -1504,6 +1571,82 @@ const AffectedDisabilities = ({
       disability
     );
   }) });
+};
+const codeClass = "cy:px-0.5 cy:py-0 cy:bg-gray-100 cy:rounded cy:text-xs cy:font-mono";
+function formatInline(text, keyPrefix) {
+  const out = [];
+  const regex = /(\*\*.+?\*\*|`[^`]*`)/g;
+  let lastIndex = 0;
+  let keyIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      out.push(/* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: text.slice(lastIndex, match.index) }, `${keyPrefix}-t-${keyIndex++}`));
+    }
+    if (match[0].startsWith("**")) {
+      out.push(/* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: match[0].slice(2, -2) }, `${keyPrefix}-s-${keyIndex++}`));
+    } else if (match[0].startsWith("`")) {
+      out.push(/* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: codeClass, children: match[0].slice(1, -1) }, `${keyPrefix}-c-${keyIndex++}`));
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    out.push(/* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: text.slice(lastIndex) }, `${keyPrefix}-t-${keyIndex++}`));
+  }
+  return out;
+}
+function formatParagraph(text, keyPrefix) {
+  const parts = [];
+  const regex = /(\*\*.+?\*\*|`[^`]*`|\n)/g;
+  let lastIndex = 0;
+  let keyIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(/* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: text.slice(lastIndex, match.index) }, `${keyPrefix}-t-${keyIndex++}`));
+    }
+    if (match[0] === "\n") {
+      parts.push(/* @__PURE__ */ jsxRuntimeExports.jsx("br", {}, `${keyPrefix}-b-${keyIndex++}`));
+    } else if (match[0].startsWith("**")) {
+      parts.push(/* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: match[0].slice(2, -2) }, `${keyPrefix}-s-${keyIndex++}`));
+    } else if (match[0].startsWith("`")) {
+      parts.push(/* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: codeClass, children: match[0].slice(1, -1) }, `${keyPrefix}-c-${keyIndex++}`));
+    }
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push(/* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: text.slice(lastIndex) }, `${keyPrefix}-t-${keyIndex++}`));
+  }
+  return parts;
+}
+const FormattedIssueText = ({
+  text,
+  className = "",
+  style,
+  as: Tag = "p"
+}) => {
+  if (text == null || text === "") return null;
+  const blocks = text.split(/\n\n+/);
+  const keyPrefix = "fmt";
+  const nodes = [];
+  blocks.forEach((block, blockIdx) => {
+    const lines = block.split("\n");
+    const bulletLines = lines.filter((line) => /^\s*-\s+/.test(line));
+    const isListBlock = lines.length > 0 && bulletLines.length === lines.length;
+    if (isListBlock && lines.length > 0) {
+      nodes.push(
+        /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "cy:list-disc cy:pl-5 cy:my-2 cy:space-y-1", children: lines.map((line, i) => {
+          const content = line.replace(/^\s*-\s+/, "");
+          return /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: formatInline(content, `${keyPrefix}-${blockIdx}-${i}`) }, `${keyPrefix}-li-${blockIdx}-${i}`);
+        }) }, `${keyPrefix}-ul-${blockIdx}`)
+      );
+    } else {
+      nodes.push(
+        /* @__PURE__ */ jsxRuntimeExports.jsx(React.Fragment, { children: formatParagraph(block, `${keyPrefix}-${blockIdx}`) }, `${keyPrefix}-p-${blockIdx}`)
+      );
+    }
+  });
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(Tag, { className, style, children: nodes });
 };
 const IssueNotFoundInMobile = ({
   width = 218,
@@ -1890,6 +2033,7 @@ const ElementListingPage = ({ onNavigate }) => {
   var _a, _b;
   const {
     selectedIssueId,
+    selectedIssueCategory,
     auditResult,
     selectedDevice,
     setIssueElement,
@@ -1898,10 +2042,10 @@ const ElementListingPage = ({ onNavigate }) => {
     setSelectedElementIndex
   } = useAuditStore();
   const currentIssue = reactExports.useMemo(() => {
-    var _a2, _b2;
+    var _a2, _b2, _c;
     try {
       const data = ((_b2 = (_a2 = auditResult == null ? void 0 : auditResult.body) == null ? void 0 : _a2.data) == null ? void 0 : _b2.report_data) || {};
-      const list = Array.isArray(data[selectedDevice]) ? data[selectedDevice] : [];
+      const list = selectedIssueCategory === "best-practice" ? Array.isArray((_c = data.best_practices) == null ? void 0 : _c[selectedDevice]) ? data.best_practices[selectedDevice] : [] : Array.isArray(data[selectedDevice]) ? data[selectedDevice] : [];
       if (selectedIssueId) {
         const found = list.find((it) => String(it == null ? void 0 : it.issue_id) === String(selectedIssueId));
         return found;
@@ -1910,7 +2054,7 @@ const ElementListingPage = ({ onNavigate }) => {
     } catch {
       return false;
     }
-  }, [auditResult, selectedDevice, selectedIssueId]);
+  }, [auditResult, selectedDevice, selectedIssueId, selectedIssueCategory]);
   const items = reactExports.useMemo(() => {
     var _a2, _b2, _c, _d, _e, _f, _g, _h;
     if (!currentIssue) return [];
@@ -2024,7 +2168,7 @@ const ElementListingPage = ({ onNavigate }) => {
       var _a3, _b3, _c2;
       try {
         if (utils == null ? void 0 : utils.markIssueItems) {
-          utils.markIssueItems(items);
+          utils.markIssueItems(items, selectedIssueCategory ?? "wcag");
           if (selectedElementIndex !== null && items[selectedElementIndex]) {
             const item = items[selectedElementIndex];
             const selector = (_a3 = item.target) == null ? void 0 : _a3[0];
@@ -2044,7 +2188,7 @@ const ElementListingPage = ({ onNavigate }) => {
     return () => {
       clearTimeout(markTimeout);
     };
-  }, [isDashboardVisible, currentIssue, items, selectedElementIndex]);
+  }, [isDashboardVisible, currentIssue, items, selectedElementIndex, selectedIssueCategory]);
   reactExports.useEffect(() => {
     return () => {
       var _a2, _b2;
@@ -2167,8 +2311,8 @@ const ElementListingPage = ({ onNavigate }) => {
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { ref: cardRef, className: "cy:bg-white cy:border cy:border-gray-200 cy:p-3", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-lg cy:font-semibold cy:text-gray-900", children: title }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:mt-1 cy:flex cy:flex-row cy:flex-wrap cy:items-center cy:gap-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-xs cy:text-gray-600", children: wcagString }),
-        severityLabel && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `cy:text-xs  cy:px-2 cy:py-0.5 ${severityClasses}`, children: severityLabel })
+        wcagString ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:text-xs cy:text-gray-600", children: wcagString }) : null,
+        severityLabel && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `cy:text-xs cy:px-2 cy:py-0.5 cy:rounded ${severityClasses}`, children: severityLabel })
       ] }),
       affectedDisabilities.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:mt-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         AffectedDisabilities,
@@ -2180,16 +2324,17 @@ const ElementListingPage = ({ onNavigate }) => {
       ) }),
       description && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:mt-2", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "p",
+          FormattedIssueText,
           {
+            text: description,
+            as: "p",
             className: "cy:text-sm cy:text-gray-800",
-            style: expanded ? {} : {
+            style: expanded ? void 0 : {
               display: "-webkit-box",
               WebkitLineClamp: 3,
               WebkitBoxOrient: "vertical",
               overflow: "hidden"
-            },
-            children: description
+            }
           }
         ),
         canToggle && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -2233,7 +2378,13 @@ const ElementListingPage = ({ onNavigate }) => {
                 onClick: () => toggleElementExpansion(item, idx),
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:flex cy:items-start cy:gap-3 cy:pr-2 cy:min-w-0 cy:flex-1", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-2.5 cy:w-2.5 cy:flex-shrink-0", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cy:mt-1 cy:inline-block cy:w-2.5 cy:h-2.5 cy:bg-red-500 cy:rounded-full" }) }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-2.5 cy:w-2.5 cy:flex-shrink-0", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "span",
+                      {
+                        className: `cy:mt-1 cy:inline-block cy:w-2.5 cy:h-2.5 cy:rounded-full ${selectedIssueCategory === "best-practice" ? "cy:bg-amber-500" : "cy:bg-red-500"}`,
+                        "aria-hidden": true
+                      }
+                    ) }),
                     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `cy:text-sm cy:text-gray-800 cy:min-w-0 ${isExpanded ? "cy:break-all" : "cy:truncate"}`, title: snippet, children: snippet })
                   ] }),
                   /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -2259,6 +2410,8 @@ const ElementListingPage = ({ onNavigate }) => {
   ] });
 };
 const Body = ({ currentPage, onNavigate, currentUrl }) => {
+  const selectedIssueCategory = useAuditStore((s) => s.selectedIssueCategory);
+  const auditInProgress = useAuditStore((s) => s.auditInProgress);
   window.webyesNavigate = onNavigate;
   reactExports.useEffect(() => {
     const clearHighlights = () => {
@@ -2278,13 +2431,15 @@ const Body = ({ currentPage, onNavigate, currentUrl }) => {
       case "accessibilityIssueHeading":
         return "Accessibility checker";
       case "accessibilityIssueDetails":
-        return "Issue details";
+        return selectedIssueCategory === "best-practice" ? "Best practice details" : "Issue details";
       case "overview":
       default:
         return null;
     }
   };
   const renderPageHeader = () => {
+    const isIssuePage = currentPage === "accessibilityIssueHeading" || currentPage === "accessibilityIssueDetails";
+    if (isIssuePage && auditInProgress) return null;
     const title = getPageTitle();
     if (!title) return null;
     const showBackButton = currentPage === "accessibilityIssueDetails";
@@ -2303,6 +2458,21 @@ const Body = ({ currentPage, onNavigate, currentUrl }) => {
   };
   const renderPage = () => {
     const commonProps = { onNavigate, currentUrl };
+    const isIssuePage = currentPage === "accessibilityIssueHeading" || currentPage === "accessibilityIssueDetails";
+    if (isIssuePage && auditInProgress) {
+      return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:relative cy:flex cy:flex-col cy:gap-6 cy:px-4 cy:py-6 cy:min-h-[500px]", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:relative cy:z-10", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          AccessibilityChecker,
+          {
+            onAnalyze: () => {
+            },
+            isAnalyzing: true,
+            auditResult: null
+          }
+        ) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:flex cy:items-center cy:justify-center cy:pointer-events-none", children: /* @__PURE__ */ jsxRuntimeExports.jsx(OverviewBackground, { width: 400, height: 400 }) })
+      ] });
+    }
     switch (currentPage) {
       case "overview":
         return /* @__PURE__ */ jsxRuntimeExports.jsx(OverviewPage, { ...commonProps });

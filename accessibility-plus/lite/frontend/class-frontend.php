@@ -208,7 +208,8 @@ class Frontend {
 				'nonce' => wp_create_nonce( 'wya11y_checker' ),
 				'assetsUrl' => plugin_dir_url( __FILE__ ) . 'assets/checker/',
 				'dashboardUrl' => $checker_js ? plugin_dir_url( dirname( __FILE__ ) ) . 'admin/app/dist/' . $checker_js : '',
-				'dashboardCssUrl' => $checker_css ? plugin_dir_url( dirname( __FILE__ ) ) . 'admin/app/dist/' . $checker_css : ''
+				'dashboardCssUrl' => $checker_css ? plugin_dir_url( dirname( __FILE__ ) ) . 'admin/app/dist/' . $checker_css : '',
+				'version' => $this->version
 			)
 		);
 	}
