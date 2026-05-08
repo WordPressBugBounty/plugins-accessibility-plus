@@ -16,7 +16,7 @@
  * Plugin Name:       Accessibility Tool Kit: WP Accessibility plugin for WCAG, Section 508, ADA, EAA Compliance
  * Plugin URI:        https://www.webyes.com/
  * Description:       A simple way to make your website more accessible.
- * Version:           2.1.1
+ * Version:           2.1.2
  * Author:            WebYes
  * Author URI:        https://www.webyes.com/
  * License:           GPLv3
@@ -46,7 +46,7 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'WY_A11Y_VERSION', '2.1.1' );
+define( 'WY_A11Y_VERSION', '2.1.2' );
 define( 'WY_A11Y_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'WY_A11Y_PLUGIN_BASEPATH', plugin_dir_path( __FILE__ ) );
 define( 'WY_A11Y_PLUGIN_DIR_URL', plugin_dir_url( __FILE__ ) );

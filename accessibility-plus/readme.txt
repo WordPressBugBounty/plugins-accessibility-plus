@@ -1,12 +1,12 @@
 === Accessibility Tool Kit: WP Accessibility plugin for WCAG, Section 508, ADA, EAA Compliance ===
 Contributors: webtoffee
-Version: 2.1.1
+Version: 2.1.2
 Donate link: https://www.webyes.com
 Tags: accessibility, ADA, EAA, WCAG, a11y
 Requires at least: 5.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Powerful WordPress accessibility plugin to detect and fix WCAG issues, improve usability, and support ADA, EAA, and Section 508 compliance.
@@ -146,6 +146,10 @@ No, the plugin does not perform any automated scans or automated reviews on the 
 
 == Changelog ==
 
+= 2.1.2 =
+[Compatibility] – Tested OK with WordPress version 7.0 .
+[Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
+
 = 2.1.1 =
 [Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
 
@@ -237,6 +241,7 @@ Initial release.
 
 == Upgrade Notice ==
 
-= 2.1.1 =
+= 2.1.2 =
+[Compatibility] – Tested OK with WordPress version 7.0 .
 [Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
 
