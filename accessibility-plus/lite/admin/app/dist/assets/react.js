@@ -1,3 +1,4 @@
+var _a, _b;
 function _mergeNamespaces(n, m) {
   for (var i = 0; i < m.length; i++) {
     const e = m[i];
@@ -12102,6 +12103,7 @@ function requireClient() {
   return client.exports;
 }
 var clientExports = requireClient();
+const PLUGIN_VERSION = ((_a = window == null ? void 0 : window.wyA11yGlobals) == null ? void 0 : _a.version) ?? ((_b = window == null ? void 0 : window.wya11yChecker) == null ? void 0 : _b.version) ?? "";
 const createStoreImpl = (createState) => {
   let state;
   const listeners = /* @__PURE__ */ new Set();
@@ -12142,6 +12144,7 @@ const createImpl = (createState) => {
 };
 const create = (createState) => createImpl;
 export {
+  PLUGIN_VERSION as P,
   React as R,
   requireReact as a,
   requireReactDom as b,

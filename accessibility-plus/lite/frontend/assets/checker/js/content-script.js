@@ -304,7 +304,11 @@ function createShadowStructure() {
   iframeElement = document.createElement('iframe');
   iframeElement.id = 'wya11y-page-iframe';
   iframeElement.style.cssText = 'border: none; background: white; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);';
-  iframeElement.src = window.location.href;
+  // Render the page without the audit flag so the inner document doesn't
+  // re-bootstrap the scanner and produce a nested dashboard.
+  const iframeUrl = new URL(window.location.href);
+  iframeUrl.searchParams.delete('wya11y_audit');
+  iframeElement.src = iframeUrl.toString();
   
   iframeElement.onload = () => {
     // Hide the accessibility checker icon inside the iframe to prevent duplicate dashboards
@@ -323,13 +327,14 @@ function createShadowStructure() {
         widgetContainer.style.display = 'none';
       }
       
-      // Check for URL change and reload main page (no re-audit)
+      // Check for URL change inside the iframe and forward the parent to
+      // the new page WITHOUT the audit param. Clicking an internal link
+      // is the intended way to exit the audit — the user lands on the
+      // normal page they navigated to, and the dashboard tears down.
       try {
         const newUrl = iframeElement.contentWindow.location.href;
-        
+
         if (currentIframeUrl && currentIframeUrl !== newUrl && !isReauditing) {
-          // Page navigation detected - reload the main webpage
-          // This removes the shadow DOM and provides a clean state
           window.location.href = newUrl;
         } else if (!currentIframeUrl) {
           // First load, just track the URL
@@ -483,10 +488,20 @@ function showDashboard() {
   if (!shadowHost) {
     createShadowStructure();
   }
-  
+
   shadowHost.style.display = 'block';
   isDashboardOpen = true;
-  document.body.style.overflow = 'hidden';
+  // Lock both <html> and <body> so the audited page can't scroll behind
+  // the dashboard. Use !important + setProperty so theme/admin-bar CSS
+  // can't override us, and reapply on the next tick in case the React
+  // dashboard mount clobbers inline styles.
+  document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+  document.body.style.setProperty('overflow', 'hidden', 'important');
+  setTimeout(() => {
+    if (!isDashboardOpen) return;
+    document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+    document.body.style.setProperty('overflow', 'hidden', 'important');
+  }, 0);
   
   // Update iframe dimensions for current device
   updateIframeDimensions(selectedDevice);
@@ -519,7 +534,16 @@ function hideDashboard() {
     shadowHost.style.display = 'none';
   }
   isDashboardOpen = false;
-  document.body.style.overflow = '';
+  document.documentElement.style.removeProperty('overflow');
+  document.body.style.removeProperty('overflow');
+  // Restore the underlying page: drop the preload class that hides body
+  // children and remove the preload <style> block. Without this the page
+  // stays a blank gray viewport after the user closes the dashboard.
+  document.documentElement.classList.remove('wya11y-auditing');
+  const preload = document.getElementById('wya11y-audit-preload');
+  if (preload && preload.parentNode) {
+    preload.parentNode.removeChild(preload);
+  }
   
   // Update Zustand store visibility state
   if (window.useAuditStore) {
@@ -1574,22 +1598,15 @@ window.webyesDeviceHandler = {
 };
 
 /**
- * Initialize - attach to checker icon
+ * Initialize - open the dashboard immediately.
+ *
+ * The bundle is only enqueued by the plugin when an admin opened the URL
+ * via the backend "Scan page" trigger (`?wya11y_audit=1`), so reaching this
+ * point already implies the dashboard should be visible.
  */
 function initialize() {
-  // Preload CSS early for faster loading
   preloadCss();
-  
-  const checkerIcon = document.getElementById('wya11y-checker-icon');
-  if (checkerIcon) {
-    checkerIcon.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      toggleDashboard();
-    });
-  } else {
-    console.error('[WebYes Checker] Checker icon not found');
-  }
+  showDashboard();
 }
 
 // Initialize when DOM is ready

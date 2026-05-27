@@ -1,4 +1,4 @@
-import { j as jsxRuntimeExports, c as create, R as React, r as reactExports, e as clientExports } from "./react.js";
+import { j as jsxRuntimeExports, c as create, R as React, r as reactExports, P as PLUGIN_VERSION, e as clientExports } from "./react.js";
 const CloseIcon = ({
   width = 14,
   height = 14,
@@ -2489,9 +2489,10 @@ const Body = ({ currentPage, onNavigate, currentUrl }) => {
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:flex-1 cy:overflow-y-auto cy:min-h-0", style: { backgroundColor: "#DCE3EE" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:h-full", children: renderPage() }) })
   ] });
 };
+const TRIAL_URL = `https://accessibility.webyes.com/trial?plan=accessibility_pro_monthly&utm_source=ScannerSidebar&utm_medium=AccessibilityPlus&utm_campaign=PluginSignups&utm_content=${PLUGIN_VERSION}`;
 const Footer = () => {
   const handleExploreClick = () => {
-    window.open("https://webyes.com", "_blank");
+    window.open(TRIAL_URL, "_blank", "noopener,noreferrer");
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cy:bg-blue-800 cy:text-white cy:px-4 cy:py-3 cy:flex cy:items-center cy:gap-2 cy:flex-shrink-0", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cy:flex-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "cy:m-0 cy:text-white", style: { fontSize: "12px", fontWeight: 400, lineHeight: "140%" }, children: "WebYes gives you deeper insights into your website's accessibility issues" }) }),

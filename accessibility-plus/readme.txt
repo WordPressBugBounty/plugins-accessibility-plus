@@ -1,23 +1,22 @@
-=== Accessibility Tool Kit: WP Accessibility plugin for WCAG, Section 508, ADA, EAA Compliance ===
+=== Accessibility Tool Kit: WP Accessibility checker plugin for WCAG, Section 508, ADA, EAA Compliance ===
 Contributors: webtoffee
-Version: 2.1.2
+Version: 2.2.0
 Donate link: https://www.webyes.com
 Tags: accessibility, ADA, EAA, WCAG, a11y
 Requires at least: 5.0
 Tested up to: 7.0
 Requires PHP: 5.6
-Stable tag: 2.1.2
+Stable tag: 2.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
-Powerful WordPress accessibility plugin to detect and fix WCAG issues, improve usability, and support ADA, EAA, and Section 508 compliance.
 
+Powerful WordPress accessibility checker plugin to detect and fix common accessibility issues, and support WCAG, ADA, EAA, and Section 508 compliance.
 
 ==Description==
+
 Accessibility Tool kit is a powerful WordPress accessibility plugin that helps make your entire WordPress site compliant with a11y standards, including **WCAG 2.1** level A and AA, **Section 508**, and **ARIA** guidelines.
 
-
-The plugin helps you detect and address common accessibility issues on your WordPress website, from missing labels to improper heading structure and keyboard navigation traps.
-
+The built-in accessibility checker scans your WordPress website and detects common accessibility issues, from missing labels to improper heading structure and keyboard navigation traps. The plugin also provides fixes for the most common issues, helping you resolve them quickly without needing to edit code manually.
 
 Accessibility Toolkit is ideal for site administrators, developers, and agencies seeking to **create more inclusive and user-friendly websites**.
 
@@ -32,6 +31,7 @@ For full legal compliance, we recommend conducting a comprehensive accessibility
 https://youtu.be/WQU5cda7sO0?si=8ovLP1jmOFsjALRR 
 
 ### More than an Accessibility Widget or an Overlay Widget
+
 Accessibility Tool Kit is not an accessibility widget or an overlay. The plugin aims to remediate accessibility issues and fix barriers at the code level without compromising the performance of the website. 
 The plugin does not add JavaScript to modify how people with disabilities and users of assistive technologies interact with your website. Instead, this web accessibility WordPress plugin helps you:
 
@@ -49,20 +49,22 @@ Website accessibility is crucial because around 15% of the world’s population,
 
 Below are the core features of the plugin that will help you reach your WordPress website accessibility goals:
 
-* **Accessibility Checker** - adds a front-end scanning widget to identify potential accessibility issues on your WordPress site. The checker detects WCAG violations such as missing labels, poor contrast, or improper heading structure, helping you understand where improvements are needed.
-* **Issue Fixes** - dynamically add code-level fixes to your website. 
+* **Accessibility Checker** - launches an admin-only, backend-initiated audit, allowing you to select any public page or URL and scan it from the dashboard.
+* **Issue Fixes** - dynamically add code-level fixes to your website.
 * **Accessibility toolbar** - to help users with disability make necessary adjustments on your website to meet their unique accessibility needs.
 * **Accessibility Statement Generator** - easily generate and add an accessibility statement to your website per various laws, like the European Accessibility Act (EAA) or the Americans with Disabilities Act (ADA).
 
 ==  Accessibility Checker for WordPress ==
-The WordPress Accessibility Checker feature adds a front-end scanning widget that allows administrators to identify potential accessibility issues directly on the website.
+
+The Accessibility Checker feature lets WordPress administrators scan any live page for accessibility issues directly from the dashboard. It evaluates the page in both desktop and mobile viewports and surfaces clear, actionable guidance to help remediate the detected issues.
+
 Key Highlights:
 
-* Adds a **front-end scanning widget** visible only to administrators.
+* Launches directly from the admin dashboard. Administrators select a page and run the scan from there.
 * Detects **WCAG violations** such as missing alt text, low color contrast, improper heading hierarchy, and unlabeled form fields.
-* Provides **on-page visual indicators** to pinpoint accessibility issues directly within the site layout.
+* Provides clear findings and recommendations so you can understand where improvements are needed.
 * Displays a **summary of detected issues** in an easy-to-read panel for quick reference.
-* Does **not modify or overlay your website’s content** or design; instead, it analyzes the underlying code to identify areas that need attention.
+* Loads scanner assets only on demand for admins, so the front-end remains lightweight for all visitors.
 
 == Dynamic Issue Fixes == 
 
@@ -82,6 +84,7 @@ This includes the following features that guide you towards the first steps in a
 
 
 ==Accessibility Toolbar ==
+
 Accessibility Toolbar is an interactive widget designed to make your site more inclusive and user-friendly.
 
 With this toolbar, website admins can give visitors more control over their browsing experience. The toolbar appears as a small, customizable widget on the front end of your website and offers several helpful tools:
@@ -94,8 +97,7 @@ Admins can use this feature to let visitors personalize how they view content on
 
 == Accessibility Statement Generator ==
 
-An accessibility statement is a public declaration of your website’s commitment to accessibility.  
-It informs visitors about the steps you have taken to make your content accessible and what measures are in place to support users with disabilities.
+An accessibility statement is a public declaration of your website’s commitment to accessibility. It informs visitors about the steps you have taken to make your content accessible and what measures are in place to support users with disabilities.
 
 With this feature, you can:
 
@@ -107,9 +109,13 @@ With this feature, you can:
 Publishing an accessibility statement not only improves user confidence but also helps reduce the risk of legal complaints by showing that you are actively working toward compliance.
 
 ## Accessibility Is a Right, Not a Bonus
+
 Accessibility helps ensure your website is welcoming and usable for everyone, including people with disabilities. This WP accessibility toolkit helps you improve accessibility with practical tools, while supporting the ongoing work of review, testing, and refinement.
+
 == Installation ==
+
 Steps to install the accessibility plugin
+
 **Step 1**: Log in to your WordPress dashboard.
 **Step 2**: Navigate to Plugins and select Add New.
 **Step 3**: In the search bar, type “Accessibility Tool Kit” and click Search Plugins.
@@ -117,7 +123,9 @@ Steps to install the accessibility plugin
 **Step 5**: After installation, click “Activate” to activate the plugin.
 **Step 6**: On activation, you can find the Accessibility Toolkit plugin menu on the WordPress admin sidebar.
 **Step 7**: Configure the plugin settings according to your website’s requirements.
+
 == Frequently Asked Questions ==
+
 = Does it support custom themes and builders?=
 Yes. Accessibility Toolkit works with most themes and builders like Elementor, WPBakery, and Block Editor. Some deeply customised elements may require manual integration.
 =Will Accessibility Toolkit make my website fully compliant with accessibility laws?=
@@ -134,21 +142,24 @@ Yes. Accessibility Toolkit improves semantic structure and ARIA attributes so yo
 While Accessibility Toolkit automates many fixes, **some issues still require manual review**, such as writing meaningful alt text or structuring content. Think of it as a powerful toolkit, not a one-click solution.
 =Will it slow down my website?=
 No. Accessibility Toolkit is **lightweight and optimised** for performance. It runs efficiently alongside your existing plugins and themes.
-=Can the plugin do an accessibility scan for finding accessibility barriers on a website=
-No, the plugin does not perform any automated scans or automated reviews on the website to identify the issues as per WCAG. However, this functionality will be added in future releases of the plugin to assist site owners in making a better user experience and improving their WordPress accessibility strategy.
+=Can the plugin scan a website for accessibility barriers?=
+Yes. Administrators can run an accessibility scan directly from the dashboard via the Accessibility Checker tab. Select a public page or URL and hit “Scan page”.
+
 == Screenshots ==
+
 1. WordPress Accessibility Plugin Screenshot
 2. Accessibility Statement Generator for WordPress
 3. Accessibility Toolbar for WordPress backend options
 4. Accessibility Toolbar for WordPress website front-end
-5. Accessibility checker for WordPress
+5. Accessibility Checker for WordPress highlights issues directly on the page
+6. Accessibility Checker tab in the WordPress plugin dashboard
 
 
 == Changelog ==
 
-= 2.1.2 =
-[Compatibility] – Tested OK with WordPress version 7.0 .
-[Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
+= 2.2.0 =
+[Add] - Backend-initiated accessibility scanner. Pick any auditable URL from the new "Accessibility Checker" tab and launch the scanner against that page.
+[Remove] - Removed the front-end floating scanner icon. Scans can be initiated from the admin panel.
 
 = 2.1.1 =
 [Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
@@ -241,7 +252,7 @@ Initial release.
 
 == Upgrade Notice ==
 
-= 2.1.2 =
-[Compatibility] – Tested OK with WordPress version 7.0 .
-[Enhancement] - Updated accessibility scanner with additional audit checks for improved result coverage.
+= 2.2.0 =
 
+[Add] - Backend-initiated accessibility scanner. Pick any auditable URL from the new "Accessibility Checker" tab and launch the scanner against that page.
+[Remove] - Removed the front-end floating scanner icon. Scans can be initiated from the admin panel.

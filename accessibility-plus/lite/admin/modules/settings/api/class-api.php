@@ -391,28 +391,6 @@ class Api extends Rest_Controller {
 					),
 				),
 
-				// Checker configuration schema
-				'checker' => array(
-					'description' => __( 'Configuration for accessibility checker.', 'accessibility-plus' ),
-					'type'        => 'object',
-					'context'     => array( 'view', 'edit' ),
-					'properties'  => array(
-						'enabled' => array(
-							'type'        => 'boolean',
-							'description' => __( 'Enable or disable the accessibility checker.', 'accessibility-plus' ),
-						),
-						'placement' => array(
-							'type'        => 'object',
-							'description' => __( 'Checker placement settings.', 'accessibility-plus' ),
-							'properties'  => array(
-								'position' => array(
-									'type'        => 'string',
-									'description' => __( 'Checker position (left or right).', 'accessibility-plus' ),
-								),
-							),
-						),
-					),
-				),
 			),
 		);
 

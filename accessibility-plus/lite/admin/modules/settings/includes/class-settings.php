@@ -125,14 +125,6 @@ class Settings {
 					'verticalOffset'  => 50,
 				),
 			),
-
-			// Checker configuration
-			'checker' => array(
-				'enabled'   => false,
-				'placement' => array(
-					'position'        => 'right',
-				),
-			),
 		);
 	}
 	/**

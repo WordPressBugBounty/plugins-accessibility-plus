@@ -103,6 +103,7 @@ class Admin {
 		$modules = array(
 			'settings',
 			'statement',
+			'auditable_urls',
 		);
 		return $modules;
 	}
@@ -167,6 +168,7 @@ class Admin {
 				'statement' => array(
 					'page' => get_option( 'wya11y_statement_page' ) ? get_option( 'wya11y_statement_page' ) : '',
 				),
+				'adminUrl'  => admin_url(),
 				'version'   => defined( 'WY_A11Y_VERSION' ) ? WY_A11Y_VERSION : '',
 			)
 		);
